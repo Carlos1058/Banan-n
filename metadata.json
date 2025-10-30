@@ -1,0 +1,7 @@
+{
+  "name": "AuraFit: Virtual Coach",
+  "description": "An AI-powered virtual personal trainer and nutritionist that generates 100% personalized and adaptable exercise and nutrition plans based on your goals, tastes, and lifestyle.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
