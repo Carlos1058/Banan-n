@@ -27,6 +27,11 @@ const App: React.FC = () => {
     budget: 0,
     foodPreferences: '',
     gender: '',
+    // Gamification defaults
+    streak: 0,
+    diamonds: 999, // Start with 999 diamonds for testing
+    bananinAccessories: [],
+    completedDays: [],
   });
   
   const handleRegister = useCallback((name: string) => {
@@ -85,7 +90,7 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
+    <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 font-sans">
       {renderPage()}
     </div>
   );

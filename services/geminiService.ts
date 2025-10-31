@@ -1,161 +1,123 @@
-import { GoogleGenAI, Type, Modality } from "@google/genai";
-import { UserProfile, WorkoutPlan } from '../types';
-
-if (!process.env.API_KEY) {
-  // In a real app, this would be a more robust check.
-  // For this environment, we assume it's set.
-  console.warn("API_KEY environment variable not set.");
-}
+import { GoogleGenAI, Type } from "@google/genai";
+import { UserProfile, WorkoutPlan } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
-const planSchema = {
+// Defines the JSON schema for the workout plan to ensure structured output from the Gemini API.
+const workoutPlanSchema = {
   type: Type.OBJECT,
   properties: {
-    weeklyPlan: {
+    workoutSchedule: {
       type: Type.ARRAY,
-      description: "A 7-day workout and nutrition plan.",
+      description: "A 7-day workout schedule.",
       items: {
         type: Type.OBJECT,
         properties: {
           day: { type: Type.STRING, description: "Day of the week (e.g., Monday)." },
-          workout: {
-            type: Type.OBJECT,
-            properties: {
-              day: { type: Type.STRING, description: "Day of the week." },
-              focus: { type: Type.STRING, description: "Main muscle group or focus for the day (e.g., Chest & Triceps)." },
-              exercises: {
-                type: Type.ARRAY,
-                items: {
-                  type: Type.OBJECT,
-                  properties: {
-                    name: { type: Type.STRING },
-                    sets: { type: Type.STRING },
-                    reps: { type: Type.STRING },
-                    instructions: { type: Type.STRING, description: "Brief instructions for the exercise." },
-                  },
-                  required: ["name", "sets", "reps", "instructions"],
-                },
+          focus: { type: Type.STRING, description: "Main focus of the workout (e.g., Upper Body, Cardio, Rest)." },
+          warmup: { type: Type.STRING, description: "A brief description of the warm-up routine." },
+          exercises: {
+            type: Type.ARRAY,
+            description: "List of exercises for the day.",
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                name: { type: Type.STRING, description: "Name of the exercise." },
+                sets: { type: Type.INTEGER, description: "Number of sets." },
+                reps: { type: Type.STRING, description: "Number of repetitions or duration (e.g., '12' or '30s')." },
+                rest: { type: Type.STRING, description: "Rest time between sets (e.g., '60s')." },
+                description: { type: Type.STRING, description: "A brief description on how to perform the exercise." },
               },
+              required: ["name", "sets", "reps", "rest", "description"],
             },
-             required: ["day", "focus", "exercises"],
           },
-          nutrition: {
-            type: Type.OBJECT,
-            properties: {
-              breakfast: {
-                type: Type.OBJECT,
-                properties: {
-                  name: { type: Type.STRING },
-                  description: { type: Type.STRING, description: "Ingredients and simple recipe." },
-                  calories: { type: Type.NUMBER },
-                },
-                 required: ["name", "description", "calories"],
-              },
-              lunch: {
-                type: Type.OBJECT,
-                 properties: {
-                  name: { type: Type.STRING },
-                  description: { type: Type.STRING, description: "Ingredients and simple recipe." },
-                  calories: { type: Type.NUMBER },
-                },
-                 required: ["name", "description", "calories"],
-              },
-              dinner: {
-                type: Type.OBJECT,
-                properties: {
-                  name: { type: Type.STRING },
-                  description: { type: Type.STRING, description: "Ingredients and simple recipe." },
-                  calories: { type: Type.NUMBER },
-                },
-                required: ["name", "description", "calories"],
-              },
-              snacks: {
-                type: Type.OBJECT,
-                properties: {
-                  name: { type: Type.STRING },
-                  description: { type: Type.STRING, description: "Optional snack idea." },
-                  calories: { type: Type.NUMBER },
-                },
-                 required: ["name", "description", "calories"],
-              },
-            },
-            required: ["breakfast", "lunch", "dinner"],
-          },
+          cooldown: { type: Type.STRING, description: "A brief description of the cool-down routine." },
         },
-        required: ["day", "workout", "nutrition"],
+        required: ["day", "focus", "warmup", "exercises", "cooldown"],
+      },
+    },
+    dietPlan: {
+      type: Type.ARRAY,
+      description: "A 7-day diet plan.",
+      items: {
+        type: Type.OBJECT,
+        properties: {
+          day: { type: Type.STRING, description: "Day of the week (e.g., Monday)." },
+          meals: {
+            type: Type.ARRAY,
+            description: "List of meals for the day (e.g., Breakfast, Lunch, Dinner, Snack).",
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                name: { type: Type.STRING, description: "Name of the meal (e.g., Breakfast)." },
+                description: { type: Type.STRING, description: "Description of the meal and ingredients." },
+                calories: { type: Type.INTEGER, description: "Estimated number of calories." },
+              },
+              required: ["name", "description", "calories"],
+            },
+          },
+          totalCalories: { type: Type.INTEGER, description: "Total estimated calories for the day." },
+        },
+        required: ["day", "meals", "totalCalories"],
       },
     },
   },
-  required: ["weeklyPlan"],
+  required: ["workoutSchedule", "dietPlan"],
 };
 
-export const generatePlan = async (profile: UserProfile): Promise<WorkoutPlan> => {
-  const prompt = `
-    Act as an expert personal trainer and nutritionist. Create a comprehensive, 7-day fitness and nutrition plan for the following user. The plan should be effective, safe, easy to follow, and tailored to their specific details.
+// Generates a detailed prompt for the AI based on the user's profile.
+const generatePrompt = (profile: UserProfile): string => {
+  return `
+    Based on the following user profile, create a comprehensive and personalized 7-day workout and diet plan.
+    The user is a beginner and needs clear, simple instructions. The tone should be encouraging and fun, in the style of a friendly banana character named Bananín.
 
     User Profile:
     - Name: ${profile.name}
-    - Gender: ${profile.gender}
     - Age: ${profile.age}
+    - Gender: ${profile.gender}
     - Weight: ${profile.weight} kg
     - Height: ${profile.height} cm
-    - Main Goal: ${profile.goal}
+    - Goal: ${profile.goal}
     - Fitness Level: ${profile.fitnessLevel}
     - Available Equipment: ${profile.availableEquipment}
     - Physical Limitations: ${profile.physicalLimitations}
-    - Exercise Habits: ${profile.exerciseHabits}
-    - Weekly Budget (for groceries, in Mexican Pesos): $${profile.budget} MXN. Use generic and economical ingredients.
+    - Current Exercise Habits: ${profile.exerciseHabits}
     - Food Preferences: ${profile.foodPreferences}
-    - Allergies or Dietary Restrictions: ${profile.allergies}
+    - Allergies: ${profile.allergies}
+    - Budget for food: ${profile.budget} (provide budget-friendly meal suggestions)
 
-    Your task is to generate a JSON object that strictly follows the provided schema. The plan must be for 7 distinct days (Monday to Sunday).
-    - Ensure the workouts are appropriate for the user's stated fitness level, available equipment, and EXPLICITLY avoid exercises that could aggravate their physical limitations.
-    - Ensure the recipes are simple and align with the budget.
-  `;
-
-  try {
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: planSchema,
-        },
-    });
-    
-    const jsonText = response.text.trim();
-    const plan = JSON.parse(jsonText) as WorkoutPlan;
-    return plan;
-  } catch (error) {
-    console.error("Error generating plan with Gemini:", error);
-    throw new Error("Failed to generate your personalized plan. Please try again.");
-  }
+    Instructions:
+    1.  **Workout Plan**: Create a 7-day schedule. Include at least 2 rest days. For each workout day, provide a warm-up, a list of 3-5 exercises (with sets, reps, rest time, and simple instructions), and a cool-down. The exercises should be suitable for the user's fitness level and available equipment.
+    2.  **Diet Plan**: Create a 7-day meal plan (Breakfast, Lunch, Dinner, and one optional Snack). The meals should align with the user's goal, preferences, and budget. Provide an estimated calorie count for each meal and a daily total.
+    3.  **Format**: Return the response in the specified JSON format. Ensure all fields are filled.
+    `;
 };
 
-export const generateSpeech = async (text: string, voice: 'male' | 'female'): Promise<string> => {
+
+export const generateWorkoutPlan = async (userProfile: UserProfile): Promise<WorkoutPlan> => {
     try {
+        const model = 'gemini-2.5-pro';
+        const prompt = generatePrompt(userProfile);
+
         const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-preview-tts",
-            contents: [{ parts: [{ text: `Act as a friendly and encouraging fitness coach. ${text}` }] }],
+            model: model,
+            contents: prompt,
             config: {
-                responseModalities: [Modality.AUDIO],
-                speechConfig: {
-                    voiceConfig: {
-                        // Kore for male, Puck for female. These are pleasant voices.
-                        prebuiltVoiceConfig: { voiceName: voice === 'male' ? 'Kore' : 'Puck' },
-                    },
-                },
+                responseMimeType: "application/json",
+                responseSchema: workoutPlanSchema,
             },
         });
 
-        const base64Audio = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-        if (!base64Audio) {
-            throw new Error("No audio data received from API.");
+        const jsonText = response.text.trim();
+        const plan = JSON.parse(jsonText) as WorkoutPlan;
+
+        if (!plan.workoutSchedule || !plan.dietPlan) {
+            throw new Error("Invalid plan structure received from API.");
         }
-        return base64Audio;
+        
+        return plan;
     } catch (error) {
-        console.error("Error generating speech with Gemini:", error);
-        throw new Error("Failed to generate speech.");
+        console.error("Error generating workout plan:", error);
+        throw new Error("Failed to generate workout plan. Please try again.");
     }
 };

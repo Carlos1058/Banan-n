@@ -1,6 +1,6 @@
 {
-  "name": "AuraFit: Virtual Coach",
-  "description": "An AI-powered virtual personal trainer and nutritionist that generates 100% personalized and adaptable exercise and nutrition plans based on your goals, tastes, and lifestyle.",
+  "name": "BanaFit: Your Fun Fitness Pal",
+  "description": "Your AI-powered virtual coach, now with a fun twist! Get personalized fitness and nutrition plans while keeping your mascot, Bananín, happy by maintaining your workout streak and unlocking cool accessories.",
   "requestFramePermissions": [
     "microphone"
   ]
