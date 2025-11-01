@@ -2,7 +2,6 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { UserProfile, WorkoutPlan } from './types';
 import OnboardingAssistant from './components/OnboardingAssistant';
 import Dashboard from './components/Dashboard';
-import Header from './components/Header';
 import WelcomeFlow from './components/WelcomeFlow';
 
 export type Page = 'welcome' | 'onboarding' | 'dashboard';
@@ -22,9 +21,8 @@ const App: React.FC = () => {
     document.documentElement.setAttribute('data-theme', theme);
 
     // Apply dark/light mode
-    // The explicit theme setting is stored in localStorage by the toggle component
     const storedTheme = localStorage.getItem('theme');
-    if (storedTheme === 'dark' || (!storedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    if (storedTheme === 'dark') { // Default to light mode unless explicitly set to dark
         document.documentElement.classList.add('dark');
     } else {
         document.documentElement.classList.remove('dark');
@@ -132,7 +130,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-200 font-sans">
-      {currentPage === 'dashboard' && userProfile && <Header userProfile={userProfile} />}
       {renderPage()}
     </div>
   );

@@ -90,7 +90,7 @@ const WelcomeFlow: React.FC<WelcomeFlowProps> = ({ onRegister, onLogin }) => {
     if (mode === 'intro') {
       const currentSlide = introSlides[step];
       return (
-        <div className="flex flex-col h-full text-center">
+        <div key={`intro-${step}`} className="flex flex-col h-full text-center animate-in fade-in-0 slide-in-from-right-5 duration-500">
           <div className="flex-grow flex flex-col items-center justify-center p-8">
             {currentSlide.graphic}
             <h2 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white mt-8">{currentSlide.title}</h2>
@@ -119,7 +119,8 @@ const WelcomeFlow: React.FC<WelcomeFlowProps> = ({ onRegister, onLogin }) => {
             </div>
             
             <div className="flex-grow flex items-center">
-                <form onSubmit={handleFormSubmit} className="w-full">
+                <form onSubmit={handleFormSubmit} className="w-full" key={`${mode}-${step}`}>
+                    <div className="animate-in fade-in-0 slide-in-from-bottom-5 duration-500">
                     { isRegister && step === 0 && ( <h1 className="text-4xl font-bold mb-8">Primero, ¿cómo te llamas?</h1> )}
                     { isRegister && step === 1 && ( <h1 className="text-4xl font-bold mb-8">¿Cómo te identificas?</h1> )}
                     { isRegister && step === 2 && ( <h1 className="text-4xl font-bold mb-8">Gusto en conocerte, {name}. ¿Cuál es tu correo?</h1> )}
@@ -154,6 +155,7 @@ const WelcomeFlow: React.FC<WelcomeFlowProps> = ({ onRegister, onLogin }) => {
                           { (isRegister && step === 3) || (!isRegister && step === 1) ? 'Finalizar' : 'Continuar' }
                       </button>
                     )}
+                    </div>
                 </form>
             </div>
             

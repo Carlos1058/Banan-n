@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { UserProfile, WorkoutPlan, DailyWorkout, DailyDiet, Exercise } from '../types';
 import { modifyWorkoutPlan } from '../services/geminiService';
+import Header from './Header';
 
 interface DashboardProps {
   userProfile: UserProfile;
@@ -53,6 +54,12 @@ const CheckIcon = ({ className }: { className: string }) => (
 const StoreIcon = ({ className }: { className: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 21v-7.5a.75.75 0 01.75-.75h3a.75.75 0 01.75.75V21m-4.5 0H2.25a.75.75 0 01-.75-.75v-7.5a.75.75 0 01.75-.75h3.75a.75.75 0 01.75.75v7.5a.75.75 0 01-.75.75zm-4.5 0h-.008v.008H4.5v-.008zm15 0h.008v.008h-.008v-.008zm-4.5 0h.008v.008h-.008v-.008zm-1.5-7.5a.75.75 0 00-.75-.75h-3a.75.75 0 00-.75.75V21m12.008-9.008a18.12 18.12 0 00-18 0m18 0a.75.75 0 00.75-.75V9.313a.75.75 0 00-.424-.684l-7.5-4.125a.75.75 0 00-.652 0l-7.5 4.125a.75.75 0 00-.424.684v2.533a.75.75 0 00.75.75m18 0a.75.75 0 00.424-.684l-7.5-4.125a.75.75 0 00-.652 0l-7.5 4.125a.75.75 0 00-.424.684" />
+    </svg>
+);
+
+const XIcon = ({ className }: { className: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
 );
 
@@ -198,12 +205,19 @@ const BananinView: React.FC<{ userProfile: UserProfile, setUserProfile: React.Di
         { id: 'default', name: 'Original BanaFit', price: 0, previewClass: 'bg-amber-400' },
         { id: 'verde', name: 'Verde Vitalidad', price: 100, previewClass: 'bg-green-500' },
         { id: 'rosa', name: 'Rosa Poder', price: 100, previewClass: 'bg-pink-500' },
+        { id: 'oro', name: 'Fiebre del Oro', price: 1500, previewClass: 'bg-yellow-400' },
+        { id: 'diamante', name: 'Polvo de Diamante', price: 2500, previewClass: 'bg-cyan-300' },
+        { id: 'obsidiana', name: 'Noche Obsidiana', price: 2500, previewClass: 'bg-slate-800' },
     ];
     
     const frames = [
+        { id: 'silver', name: 'Borde Plateado', price: 150, previewStyle: { border: '4px solid silver' } },
         { id: 'gold', name: 'Marco Dorado', price: 250, previewStyle: { border: '4px solid gold' } },
+        { id: 'bookworm', name: 'Ratón de Biblioteca', price: 200, emoji: '🤓' },
         { id: 'squats', name: 'Poder de Pesas', price: 350, emoji: '🏋️' },
         { id: 'veggie', name: 'Marco Saludable', price: 350, emoji: '🥦' },
+        { id: 'fire', name: 'Racha de Fuego', price: 1200, emoji: '🔥' },
+        { id: 'diamond_glow', name: 'Brillo Diamante', price: 2000, emoji: '✨' },
     ];
 
     const handlePurchase = (itemType: 'theme' | 'frame', itemId: string, price: number) => {
@@ -310,15 +324,38 @@ const BananinView: React.FC<{ userProfile: UserProfile, setUserProfile: React.Di
     );
 }
 
-const ProfileView: React.FC<{ userProfile: UserProfile, onLogout: () => void, setUserProfile: React.Dispatch<React.SetStateAction<UserProfile | null>> }> = ({ userProfile, onLogout, setUserProfile }) => {
+type ActiveView = 'day' | 'week' | 'bananin';
+
+const ProfileNavButton: React.FC<{
+    icon: React.ElementType,
+    label: string,
+    view: ActiveView,
+    currentView: ActiveView,
+    setView: (view: ActiveView) => void,
+    closeSidebar: () => void,
+}> = ({ icon: Icon, label, view, currentView, setView, closeSidebar }) => (
+    <button
+        onClick={() => { setView(view); closeSidebar(); }}
+        className={`flex items-center gap-4 w-full p-3 rounded-lg text-lg font-semibold transition-colors ${currentView === view ? 'bg-primary-100 dark:bg-primary-900/50 text-primary-600 dark:text-primary-300' : 'hover:bg-slate-200 dark:hover:bg-slate-700'}`}
+    >
+        <Icon className="w-6 h-6" />
+        {label}
+    </button>
+);
+
+
+const ProfileView: React.FC<{ 
+    userProfile: UserProfile, 
+    onLogout: () => void, 
+    setUserProfile: React.Dispatch<React.SetStateAction<UserProfile | null>>,
+    activeView: ActiveView,
+    setActiveView: (view: ActiveView) => void,
+    closeSidebar: () => void,
+}> = ({ userProfile, onLogout, setUserProfile, activeView, setActiveView, closeSidebar }) => {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [isEditing, setIsEditing] = useState(false);
     const [editableProfile, setEditableProfile] = useState<UserProfile>(userProfile);
-    const [isDarkMode, setIsDarkMode] = useState(() => {
-        const storedTheme = localStorage.getItem('theme');
-        if (storedTheme) return storedTheme === 'dark';
-        return window.matchMedia('(prefers-color-scheme: dark)').matches;
-    });
+    const [isDarkMode, setIsDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
 
     useEffect(() => {
         setEditableProfile(userProfile);
@@ -416,18 +453,30 @@ const ProfileView: React.FC<{ userProfile: UserProfile, onLogout: () => void, se
         switch (frameId) {
             case 'gold':
                 return <div style={{...baseStyle, top: '-8px', left: '-8px', width: 'calc(100% + 16px)', height: 'calc(100% + 16px)', borderRadius: '50%', border: '6px solid gold' }}></div>;
+            case 'silver':
+                return <div style={{...baseStyle, top: '-8px', left: '-8px', width: 'calc(100% + 16px)', height: 'calc(100% + 16px)', borderRadius: '50%', border: '6px solid silver' }}></div>;
             case 'squats':
-                return <div className="absolute -bottom-2 -right-2 bg-white dark:bg-slate-700 rounded-full p-1 shadow-md text-2xl" style={{ transform: 'translate(10%, 10%)' }}>🏋️</div>
             case 'veggie':
-                return <div className="absolute -bottom-2 -right-2 bg-white dark:bg-slate-700 rounded-full p-1 shadow-md text-2xl" style={{ transform: 'translate(10%, 10%)' }}>🥦</div>
+            case 'bookworm':
+            case 'fire':
+            case 'diamond_glow':
+                 const emojiMap = { squats: '🏋️', veggie: '🥦', bookworm: '🤓', fire: '🔥', diamond_glow: '✨' };
+                 return <div className="absolute -bottom-2 -right-2 bg-white dark:bg-slate-700 rounded-full p-1 shadow-md text-sm" style={{ transform: 'translate(25%, 25%)' }}>{emojiMap[frameId as keyof typeof emojiMap]}</div>
             default:
                 return null;
         }
     }
 
     return (
-        <div className="max-w-2xl mx-auto p-4">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center">
+        <div className="relative p-4">
+            <button 
+                onClick={closeSidebar} 
+                className="absolute top-4 right-4 z-10 p-2 rounded-full bg-slate-200/50 dark:bg-slate-800/50 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors"
+                aria-label="Cerrar perfil"
+            >
+                <XIcon className="w-6 h-6 text-slate-700 dark:text-slate-200" />
+            </button>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-8 flex flex-col items-center mt-8">
                 <div className="relative mb-4">
                     <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
                     <button 
@@ -483,6 +532,15 @@ const ProfileView: React.FC<{ userProfile: UserProfile, onLogout: () => void, se
                 </div>
             </div>
             
+             <div className="mt-8 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6">
+                <h3 className="font-bold text-lg mb-3">Navegación</h3>
+                <div className="space-y-2">
+                    <ProfileNavButton icon={CalendarIcon} label="Día" view="day" currentView={activeView} setView={setActiveView} closeSidebar={closeSidebar} />
+                    <ProfileNavButton icon={CalendarWeekIcon} label="Semana" view="week" currentView={activeView} setView={setActiveView} closeSidebar={closeSidebar} />
+                    <ProfileNavButton icon={SparklesIcon} label="Bananín" view="bananin" currentView={activeView} setView={setActiveView} closeSidebar={closeSidebar} />
+                </div>
+            </div>
+
             <div className="mt-8 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 p-6">
                 <h3 className="font-bold text-lg mb-2">Modo de Apariencia</h3>
                 <div className="flex items-center justify-between bg-slate-100 dark:bg-slate-700 p-3 rounded-lg">
@@ -503,10 +561,9 @@ const ProfileView: React.FC<{ userProfile: UserProfile, onLogout: () => void, se
 
 // --- Main Dashboard Component ---
 
-type ActiveView = 'day' | 'week' | 'bananin' | 'profile';
-
 const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onStartOnboarding, setUserProfile, setWorkoutPlan }) => {
   const [activeView, setActiveView] = useState<ActiveView>('day');
+  const [isProfileSidebarOpen, setIsProfileSidebarOpen] = useState(false);
   const [isModifying, setIsModifying] = useState(false);
   const [modificationRequest, setModificationRequest] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
@@ -514,6 +571,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
   const [completedExercisesByDay, setCompletedExercisesByDay] = useState<Record<string, Set<string>>>({});
   const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
 
+  const toggleProfileSidebar = () => setIsProfileSidebarOpen(prev => !prev);
   const getTodayDateString = () => new Date().toISOString().split('T')[0];
   
   const handleToggleExercise = useCallback((day: string, exerciseName: string) => {
@@ -632,8 +690,6 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
         return <WeekView plan={plan} completedExercisesByDay={completedExercisesByDay} />;
       case 'bananin':
         return <BananinView userProfile={userProfile} setUserProfile={setUserProfile} />;
-      case 'profile':
-        return <ProfileView userProfile={userProfile} onLogout={onLogout} setUserProfile={setUserProfile} />;
       default:
         return <DayView 
                     workout={workout} 
@@ -650,24 +706,26 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
     { id: 'day', label: 'Día', icon: CalendarIcon },
     { id: 'week', label: 'Semana', icon: CalendarWeekIcon },
     { id: 'bananin', label: 'Bananín', icon: SparklesIcon },
-    { id: 'profile', label: 'Perfil', icon: UserIcon },
   ];
 
   return (
     <div className="flex flex-col min-h-screen">
+      <Header userProfile={userProfile} onProfileClick={toggleProfileSidebar} />
       <main className="flex-grow max-w-7xl mx-auto p-4 md:p-8 w-full pb-24">
-        {(activeView === 'day' || activeView === 'week') && (
-          <div className="flex justify-center mb-6">
-            <button
-              onClick={() => setIsModifying(true)}
-              className="inline-flex items-center gap-2 bg-slate-200 dark:bg-slate-700 px-4 py-2 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
-            >
-              <SparklesIcon className="w-5 h-5 text-primary-500" />
-              Modificar Plan con IA
-            </button>
-          </div>
-        )}
-        {renderContent()}
+        <div key={activeView} className="animate-in fade-in-0 duration-500">
+            {(activeView === 'day' || activeView === 'week') && (
+            <div className="flex justify-center mb-6">
+                <button
+                onClick={() => setIsModifying(true)}
+                className="inline-flex items-center gap-2 bg-slate-200 dark:bg-slate-700 px-4 py-2 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                >
+                <SparklesIcon className="w-5 h-5 text-primary-500" />
+                Modificar Plan con IA
+                </button>
+            </div>
+            )}
+            {renderContent()}
+        </div>
       </main>
       
       {showCompletionAnimation && <CompletionAnimation onClose={() => setShowCompletionAnimation(false)} />}
@@ -710,6 +768,21 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
           </div>
         </div>
       )}
+
+        {/* Backdrop */}
+        <div
+            className={`fixed inset-0 bg-black/40 z-30 transition-opacity duration-300 ${isProfileSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            onClick={toggleProfileSidebar}
+        ></div>
+        {/* Sidebar */}
+        <aside
+            className={`fixed top-0 right-0 h-full w-[85%] sm:w-[400px] bg-slate-100 dark:bg-slate-900 z-40 shadow-2xl transition-transform duration-300 ease-in-out transform ${isProfileSidebarOpen ? 'translate-x-0' : 'translate-x-full'}`}
+        >
+            <div className="h-full overflow-y-auto">
+                <ProfileView userProfile={userProfile} onLogout={onLogout} setUserProfile={setUserProfile} activeView={activeView} setActiveView={setActiveView} closeSidebar={toggleProfileSidebar} />
+            </div>
+        </aside>
+
 
       <footer className="fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 shadow-t-lg">
         <nav className="flex justify-around max-w-7xl mx-auto">

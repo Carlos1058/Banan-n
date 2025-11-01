@@ -9,9 +9,10 @@ const UserIcon = ({ className }: { className: string }) => (
 
 interface HeaderProps {
     userProfile: UserProfile;
+    onProfileClick: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ userProfile }) => {
+const Header: React.FC<HeaderProps> = ({ userProfile, onProfileClick }) => {
     
     const renderFrame = (frameId?: string) => {
         const baseStyle = { position: 'absolute', pointerEvents: 'none' } as React.CSSProperties;
@@ -19,10 +20,15 @@ const Header: React.FC<HeaderProps> = ({ userProfile }) => {
         switch (frameId) {
             case 'gold':
                  return <div style={{...baseStyle, top: '-5px', left: '-5px', width: 'calc(100% + 10px)', height: 'calc(100% + 10px)', borderRadius: '50%', border: '3px solid gold' }}></div>;
+            case 'silver':
+                 return <div style={{...baseStyle, top: '-5px', left: '-5px', width: 'calc(100% + 10px)', height: 'calc(100% + 10px)', borderRadius: '50%', border: '3px solid silver' }}></div>;
             case 'squats':
-                return <div className="absolute -bottom-1 -right-1 bg-white dark:bg-slate-700 rounded-full p-0.5 shadow-md text-lg" style={{ transform: 'translate(15%, 15%)' }}>🏋️</div>
             case 'veggie':
-                return <div className="absolute -bottom-1 -right-1 bg-white dark:bg-slate-700 rounded-full p-0.5 shadow-md text-lg" style={{ transform: 'translate(15%, 15%)' }}>🥦</div>
+            case 'bookworm':
+            case 'fire':
+            case 'diamond_glow':
+                 const emojiMap = { squats: '🏋️', veggie: '🥦', bookworm: '🤓', fire: '🔥', diamond_glow: '✨' };
+                 return <div className="absolute -bottom-1 -right-1 bg-white dark:bg-slate-700 rounded-full p-1 shadow-md text-sm" style={{ transform: 'translate(20%, 20%)' }}>{emojiMap[frameId as keyof typeof emojiMap]}</div>
             default:
                 return null;
         }
@@ -42,7 +48,7 @@ const Header: React.FC<HeaderProps> = ({ userProfile }) => {
                         <span className="text-slate-800 dark:text-slate-100">{userProfile.diamonds}</span>
                     </div>
                 </div>
-                <div className="relative">
+                <button onClick={onProfileClick} className="relative focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 rounded-full" aria-label="Abrir perfil">
                     <div className="h-10 w-10">
                         {userProfile.profilePictureUrl ? (
                             <img src={userProfile.profilePictureUrl} alt="Profile" className="h-full w-full rounded-full object-cover border-2 border-white dark:border-slate-900" />
@@ -53,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({ userProfile }) => {
                         )}
                     </div>
                      {renderFrame(userProfile.activeFrame)}
-                </div>
+                </button>
             </div>
         </header>
     );
