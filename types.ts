@@ -14,11 +14,29 @@ export interface UserProfile {
   foodPreferences: string; // e.g., 'vegetarian', 'vegan', 'none'
   gender: string;
 
+  // New fields for advanced/expert onboarding
+  sleepHours?: string;
+  trainingTime?: string;
+
+  // Expert Onboarding Fields
+  neckCircumference?: number;
+  waistCircumference?: number;
+  hipCircumference?: number;
+  favoriteProteins?: string[];
+  favoriteCarbs?: string[];
+
   // Gamification
   streak: number;
   diamonds: number;
   bananinAccessories: string[]; // e.g., ['hat', 'sunglasses']
   completedDays: string[]; // e.g., ['2024-07-29']
+  
+  // UI Customization
+  profilePictureUrl?: string;
+  purchasedThemes?: string[]; // e.g., ['default', 'verde']
+  activeTheme?: string; // e.g., 'verde'
+  purchasedFrames?: string[]; // e.g., ['gold', 'squats']
+  activeFrame?: string; // e.g., 'gold'
 }
 
 // Defines the structure for a single exercise.

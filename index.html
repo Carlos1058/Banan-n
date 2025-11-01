@@ -7,21 +7,23 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
+        darkMode: 'class', // Enable class-based dark mode
         theme: {
           extend: {
             colors: {
-              primary: { // This is the Amber color palette from Tailwind, fitting for BanaFit
-                50: '#fffbeb',
-                100: '#fef3c7',
-                200: '#fde68a',
-                300: '#fcd34d',
-                400: '#fbbf24',
-                500: '#f59e0b',
-                600: '#d97706',
-                700: '#b45309',
-                800: '#92400e',
-                900: '#78350f',
-                950: '#451a03',
+              // Using CSS variables to allow for dynamic theming
+              primary: {
+                50: 'rgb(var(--color-primary-50) / <alpha-value>)',
+                100: 'rgb(var(--color-primary-100) / <alpha-value>)',
+                200: 'rgb(var(--color-primary-200) / <alpha-value>)',
+                300: 'rgb(var(--color-primary-300) / <alpha-value>)',
+                400: 'rgb(var(--color-primary-400) / <alpha-value>)',
+                500: 'rgb(var(--color-primary-500) / <alpha-value>)',
+                600: 'rgb(var(--color-primary-600) / <alpha-value>)',
+                700: 'rgb(var(--color-primary-700) / <alpha-value>)',
+                800: 'rgb(var(--color-primary-800) / <alpha-value>)',
+                900: 'rgb(var(--color-primary-900) / <alpha-value>)',
+                950: 'rgb(var(--color-primary-950) / <alpha-value>)',
               },
             }
           }
@@ -39,6 +41,32 @@
       }
     </script>
     <script type="module" src="/index.tsx"></script>
+    <style>
+      /* Hide scrollbar for Chrome, Safari and Opera */
+      ::-webkit-scrollbar {
+        display: none;
+      }
+      /* Hide scrollbar for IE, Edge and Firefox */
+      html, body {
+        -ms-overflow-style: none;  /* IE and Edge */
+        scrollbar-width: none;  /* Firefox */
+      }
+      
+      /* Default Theme: Amber (BanaFit Yellow) */
+      :root {
+        --color-primary-50: 255 251 235; --color-primary-100: 254 243 199; --color-primary-200: 253 230 138; --color-primary-300: 252 211 77; --color-primary-400: 251 191 36; --color-primary-500: 245 158 11; --color-primary-600: 217 119 6; --color-primary-700: 180 83 9; --color-primary-800: 146 64 14; --color-primary-900: 120 53 15; --color-primary-950: 69 26 3;
+      }
+      
+      /* Green Theme */
+      [data-theme="verde"] {
+        --color-primary-50: 240 253 244; --color-primary-100: 220 252 231; --color-primary-200: 187 247 208; --color-primary-300: 134 239 172; --color-primary-400: 74 222 128; --color-primary-500: 34 197 94; --color-primary-600: 22 163 74; --color-primary-700: 21 128 61; --color-primary-800: 22 101 52; --color-primary-900: 20 83 45; --color-primary-950: 5 46 22;
+      }
+      
+      /* Pink Theme */
+      [data-theme="rosa"] {
+        --color-primary-50: 253 242 248; --color-primary-100: 252 231 243; --color-primary-200: 251 207 232; --color-primary-300: 249 168 212; --color-primary-400: 244 114 182; --color-primary-500: 236 72 153; --color-primary-600: 219 39 119; --color-primary-700: 190 24 93; --color-primary-800: 157 23 77; --color-primary-900: 131 24 67; --color-primary-950: 80 7 36;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
