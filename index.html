@@ -81,6 +81,77 @@
       [data-theme="obsidiana"] {
         --color-primary-50: 241 245 249; --color-primary-100: 226 232 240; --color-primary-200: 203 213 225; --color-primary-300: 148 163 184; --color-primary-400: 100 116 139; --color-primary-500: 71 85 105; --color-primary-600: 51 65 85; --color-primary-700: 30 41 59; --color-primary-800: 15 23 42; --color-primary-900: 2 6 23; --color-primary-950: 0 1 7;
       }
+
+      /* New Streak Fire Animations */
+      @keyframes streak-fire-intro {
+        0% {
+          transform: translate(-50%, -50%) scale(0.1) rotate(0deg);
+          opacity: 0;
+        }
+        60% {
+          transform: translate(-50%, -50%) scale(1.5) rotate(720deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translate(-50%, -50%) scale(1.2) rotate(720deg);
+          opacity: 1;
+        }
+      }
+
+      @keyframes streak-fire-pulse {
+        0%, 100% { transform: translate(-50%, -50%) scale(1.2); }
+        50% { transform: translate(-50%, -50%) scale(1.4); }
+      }
+
+      @keyframes streak-fire-outro {
+        0% {
+          transform: translate(-50%, -50%) scale(1.2) rotate(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: translate(var(--target-x-transform), var(--target-y-transform)) scale(0.1) rotate(1080deg);
+          opacity: 0;
+        }
+      }
+      
+      .streak-fire-intro-anim {
+        animation: streak-fire-intro 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      }
+      .streak-fire-pulse-anim {
+        animation: streak-fire-pulse 1.5s ease-in-out infinite;
+      }
+      .streak-fire-outro-anim {
+        animation: streak-fire-outro 1s cubic-bezier(0.5, 0, 1, 0.5) forwards;
+      }
+
+
+      /* Pulse animation for next streak day */
+      @keyframes pulse {
+        0%, 100% {
+          transform: scale(1);
+          box-shadow: 0 0 0 0 rgb(var(--color-primary-500) / 0.7);
+        }
+        50% {
+          transform: scale(1.05);
+          box-shadow: 0 0 0 10px rgb(var(--color-primary-500) / 0);
+        }
+      }
+      
+      /* Animation for completing an exercise */
+      @keyframes exercise-complete-flash {
+        50% {
+          outline: 3px solid rgb(var(--color-primary-400) / 0.5);
+          background-color: rgb(var(--color-primary-50) / 0.7);
+        }
+      }
+      .animate-exercise-complete {
+        animation: exercise-complete-flash 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .animate-pulse-strong {
+        animation: pulse 2s infinite;
+      }
+
     </style>
   </head>
   <body>

@@ -10,9 +10,11 @@ const UserIcon = ({ className }: { className: string }) => (
 interface HeaderProps {
     userProfile: UserProfile;
     onProfileClick: () => void;
+    onStreakClick: () => void;
+    streakIconRef: React.RefObject<HTMLButtonElement>;
 }
 
-const Header: React.FC<HeaderProps> = ({ userProfile, onProfileClick }) => {
+const Header: React.FC<HeaderProps> = ({ userProfile, onProfileClick, onStreakClick, streakIconRef }) => {
     
     const renderFrame = (frameId?: string) => {
         const baseStyle = { position: 'absolute', pointerEvents: 'none' } as React.CSSProperties;
@@ -39,10 +41,15 @@ const Header: React.FC<HeaderProps> = ({ userProfile, onProfileClick }) => {
             <h1 className="text-2xl font-bold text-primary-500">BanaFit 🍌</h1>
             <div className="flex items-center gap-4">
                 <div className="flex items-center gap-4 text-sm font-semibold">
-                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-full">
+                    <button 
+                        ref={streakIconRef}
+                        onClick={onStreakClick}
+                        className="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-full transition-transform hover:scale-105"
+                        aria-label="Ver progreso de racha"
+                    >
                         <span>🔥</span>
                         <span className="text-slate-800 dark:text-slate-100">{userProfile.streak}</span>
-                    </div>
+                    </button>
                     <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-full">
                         <span>💎</span>
                         <span className="text-slate-800 dark:text-slate-100">{userProfile.diamonds}</span>

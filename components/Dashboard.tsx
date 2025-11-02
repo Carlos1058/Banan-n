@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { UserProfile, WorkoutPlan, DailyWorkout, DailyDiet, Exercise } from '../types';
-import { modifyWorkoutPlan } from '../services/geminiService';
+import { modifyWorkoutPlan, fetchGifsForDay } from '../services/geminiService';
 import Header from './Header';
+import StreakModal from './StreakModal';
 
 interface DashboardProps {
   userProfile: UserProfile;
@@ -57,30 +58,103 @@ const StoreIcon = ({ className }: { className: string }) => (
     </svg>
 );
 
+const PlayIcon = ({ className }: { className: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+    </svg>
+);
+
 const XIcon = ({ className }: { className: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
 );
 
-// --- Completion Animation ---
-const CompletionAnimation: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+// --- New Animation Component ---
+const StreakFireAnimation: React.FC<{
+    isOpen: boolean;
+    onClose: () => void;
+    targetCoords: { x: number; y: number };
+}> = ({ isOpen, onClose, targetCoords }) => {
+    const [phase, setPhase] = useState<'intro' | 'pulse' | 'outro' | 'hidden'>('hidden');
+    const [showMessage, setShowMessage] = useState(false);
+
     useEffect(() => {
-        const timer = setTimeout(onClose, 3500);
-        return () => clearTimeout(timer);
-    }, [onClose]);
+        if (isOpen) {
+            setPhase('intro');
+        } else {
+            setPhase('hidden');
+            setShowMessage(false);
+        }
+    }, [isOpen]);
+
+    const handleIntroEnd = () => {
+        setPhase('pulse');
+        setTimeout(() => setShowMessage(true), 300);
+        setTimeout(() => setPhase('outro'), 2800);
+    };
+
+    const handleOutroEnd = () => {
+        onClose();
+    };
+
+    if (phase === 'hidden') return null;
+    
+    const outroStyles = {
+        '--target-x-transform': `${targetCoords.x - window.innerWidth / 2}px`,
+        '--target-y-transform': `${targetCoords.y - window.innerHeight / 2}px`,
+    } as React.CSSProperties;
+
+    const getAnimationClass = () => {
+        switch (phase) {
+            case 'intro': return 'streak-fire-intro-anim';
+            case 'pulse': return 'streak-fire-pulse-anim';
+            case 'outro': return 'streak-fire-outro-anim';
+            default: return '';
+        }
+    };
+    
+    return (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div
+                className={`fixed text-7xl z-10 left-1/2 top-1/2 ${getAnimationClass()}`}
+                onAnimationEnd={phase === 'intro' ? handleIntroEnd : phase === 'outro' ? handleOutroEnd : undefined}
+                style={phase === 'outro' ? outroStyles : {}}
+            >
+                🔥
+            </div>
+
+            {showMessage && (
+                <div className="text-center transform transition-all animate-in fade-in-0 zoom-in-95 duration-500">
+                    <h2 className="text-5xl font-bold text-white drop-shadow-lg">¡Día Completado!</h2>
+                    <p className="text-white/80 text-lg mt-2 drop-shadow-md">¡Increíble trabajo! Sigue así.</p>
+                     <div className="mt-6 bg-primary-500/80 text-white font-bold py-3 px-5 rounded-full inline-flex items-center gap-2 border-2 border-white/50">
+                        <SparklesIcon className="w-6 h-6" />
+                        <span>+15 Diamantes 💎</span>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+// --- New GIF Viewer Modal (replaces VideoPlayerModal) ---
+const GifViewerModal: React.FC<{ gifUrl: string | null; exerciseName: string | null; onClose: () => void }> = ({ gifUrl, exerciseName, onClose }) => {
+    if (!gifUrl) return null;
 
     return (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-md z-50 flex items-center justify-center p-4 animate-in fade-in-0">
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm p-8 border border-slate-200 dark:border-slate-700 text-center transform transition-all animate-in fade-in-0 zoom-in-95">
-                <div className="text-7xl animate-bounce">🎉</div>
-                <h2 className="text-3xl font-bold mt-4">¡Día Completado!</h2>
-                <p className="text-slate-600 dark:text-slate-300 mt-2">¡Increíble trabajo! Sigue así.</p>
-                <div className="mt-6 bg-primary-100 dark:bg-primary-900/50 text-primary-700 dark:text-primary-300 font-bold py-3 px-5 rounded-full inline-flex items-center gap-2">
-                    <SparklesIcon className="w-6 h-6" />
-                    <span>+15 Diamantes 💎</span>
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in-0" onClick={onClose}>
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in-0 zoom-in-95" onClick={e => e.stopPropagation()}>
+                <div className="p-4 border-b border-slate-200 dark:border-slate-700">
+                    <h3 className="text-lg font-bold text-center">{exerciseName}</h3>
+                </div>
+                <div className="bg-slate-100 dark:bg-slate-700 flex justify-center items-center">
+                    <img src={gifUrl} alt={`GIF animation for ${exerciseName}`} className="max-w-full max-h-80" />
                 </div>
             </div>
+            <button onClick={onClose} className="absolute top-4 right-4 p-2 rounded-full bg-slate-100/20 hover:bg-slate-100/40 text-white" aria-label="Cerrar GIF">
+                <XIcon className="w-6 h-6" />
+            </button>
         </div>
     );
 };
@@ -93,12 +167,15 @@ interface DayViewProps {
     diet: DailyDiet;
     completedExercises: Set<string>;
     onToggleExercise: (exerciseName: string) => void;
+    onCompleteDay: () => void;
+    onViewGif: (gifUrl: string, exerciseName: string) => void;
     isPreview?: boolean;
     previewTitle?: string;
 }
 
-const DayView: React.FC<DayViewProps> = ({ workout, diet, completedExercises, onToggleExercise, isPreview, previewTitle }) => {
+const DayView: React.FC<DayViewProps> = ({ workout, diet, completedExercises, onToggleExercise, onCompleteDay, onViewGif, isPreview, previewTitle }) => {
     const [activeTab, setActiveTab] = useState<'entrenamiento' | 'dieta'>('entrenamiento');
+    const isRestDay = workout.exercises.length === 0;
 
     return (
         <div className={`space-y-6 ${isPreview ? 'opacity-70 pointer-events-none' : ''}`}>
@@ -125,17 +202,34 @@ const DayView: React.FC<DayViewProps> = ({ workout, diet, completedExercises, on
                 <div>
                     <h2 className="text-2xl font-bold mb-4 text-center sm:text-left">{previewTitle || `Entrenamiento de Hoy: ${workout.focus}`}</h2>
                     <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700">
-                        <div className="space-y-4 my-4">
-                            {workout.exercises.map((exercise, index) => <ExerciseCard 
-                                key={index} 
-                                exercise={exercise}
-                                isCompleted={completedExercises.has(exercise.name)}
-                                onToggleCompletion={!isPreview ? () => onToggleExercise(exercise.name) : undefined}
-                            />)}
-                        </div>
-                        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 text-center pt-4 border-t border-slate-200 dark:border-slate-700">
-                            <strong>Enfriamiento:</strong> {workout.cooldown}
-                        </p>
+                        {isRestDay ? (
+                            <div className="text-center py-8">
+                                <p className="text-2xl mb-4">😴</p>
+                                <h3 className="text-xl font-bold">Día de Descanso</h3>
+                                <p className="text-slate-500 dark:text-slate-400 mt-2 mb-6">¡Tu cuerpo necesita recuperarse para volverse más fuerte!</p>
+                                <button
+                                    onClick={onCompleteDay}
+                                    className="bg-primary-600 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-primary-700 transition-colors"
+                                >
+                                    Marcar Día Como Completado
+                                </button>
+                            </div>
+                        ) : (
+                            <>
+                                <div className="space-y-4 my-4">
+                                    {workout.exercises.map((exercise, index) => <ExerciseCard 
+                                        key={index} 
+                                        exercise={exercise}
+                                        isCompleted={completedExercises.has(exercise.name)}
+                                        onToggleCompletion={!isPreview ? () => onToggleExercise(exercise.name) : undefined}
+                                        onViewGif={!isPreview ? onViewGif : undefined}
+                                    />)}
+                                </div>
+                                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 text-center pt-4 border-t border-slate-200 dark:border-slate-700">
+                                    <strong>Enfriamiento:</strong> {workout.cooldown}
+                                </p>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
@@ -169,9 +263,10 @@ const DayView: React.FC<DayViewProps> = ({ workout, diet, completedExercises, on
 interface WeekViewProps {
     plan: WorkoutPlan;
     completedExercisesByDay: Record<string, Set<string>>;
+    onViewGif: (gifUrl: string, exerciseName: string) => void;
 }
 
-const WeekView: React.FC<WeekViewProps> = ({ plan, completedExercisesByDay }) => {
+const WeekView: React.FC<WeekViewProps> = ({ plan, completedExercisesByDay, onViewGif }) => {
   const [activeTab, setActiveTab] = useState<'workout' | 'diet'>('workout');
 
   return (
@@ -193,7 +288,7 @@ const WeekView: React.FC<WeekViewProps> = ({ plan, completedExercisesByDay }) =>
           </div>
       </div>
       <div>
-        {activeTab === 'workout' ? <WorkoutSchedule schedule={plan.workoutSchedule} completedExercisesByDay={completedExercisesByDay} /> : <DietPlan plan={plan.dietPlan} />}
+        {activeTab === 'workout' ? <WorkoutSchedule schedule={plan.workoutSchedule} completedExercisesByDay={completedExercisesByDay} onViewGif={onViewGif} /> : <DietPlan plan={plan.dietPlan} />}
       </div>
     </div>
   );
@@ -202,7 +297,7 @@ const WeekView: React.FC<WeekViewProps> = ({ plan, completedExercisesByDay }) =>
 const BananinView: React.FC<{ userProfile: UserProfile, setUserProfile: React.Dispatch<React.SetStateAction<UserProfile | null>> }> = ({ userProfile, setUserProfile }) => {
     
     const themes = [
-        { id: 'default', name: 'Original BanaFit', price: 0, previewClass: 'bg-amber-400' },
+        { id: 'default', name: 'BanaFit Original', price: 0, previewClass: 'bg-amber-400' },
         { id: 'verde', name: 'Verde Vitalidad', price: 100, previewClass: 'bg-green-500' },
         { id: 'rosa', name: 'Rosa Poder', price: 100, previewClass: 'bg-pink-500' },
         { id: 'oro', name: 'Fiebre del Oro', price: 1500, previewClass: 'bg-yellow-400' },
@@ -482,10 +577,10 @@ const ProfileView: React.FC<{
                     <button 
                         onClick={handlePictureClick} 
                         className="group relative w-32 h-32 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center overflow-hidden border-4 border-white dark:border-slate-800 shadow-md transition-transform transform hover:scale-105"
-                        aria-label="Change profile picture"
+                        aria-label="Cambiar foto de perfil"
                     >
                         {userProfile.profilePictureUrl ? (
-                            <img src={userProfile.profilePictureUrl} alt="Profile" className="w-full h-full object-cover" />
+                            <img src={userProfile.profilePictureUrl} alt="Perfil" className="w-full h-full object-cover" />
                         ) : (
                             <UserIcon className="w-16 h-16 text-slate-400 dark:text-slate-500" />
                         )}
@@ -569,11 +664,95 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [completedExercisesByDay, setCompletedExercisesByDay] = useState<Record<string, Set<string>>>({});
-  const [showCompletionAnimation, setShowCompletionAnimation] = useState(false);
+  const [showStreakAnimation, setShowStreakAnimation] = useState(false);
+  const [streakAnimationTarget, setStreakAnimationTarget] = useState({ x: 0, y: 0 });
+  const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
+  const [lastStreakReward, setLastStreakReward] = useState<{ day: number, diamonds: number } | null>(null);
+  const [viewingGif, setViewingGif] = useState<{ url: string; name: string } | null>(null);
+
+  const streakIconRef = useRef<HTMLButtonElement>(null);
 
   const toggleProfileSidebar = () => setIsProfileSidebarOpen(prev => !prev);
   const getTodayDateString = () => new Date().toISOString().split('T')[0];
-  
+  const getTodayDayString = useCallback(() => {
+    if (!plan) return '';
+    const today = new Date().toLocaleString('en-US', { weekday: 'long' });
+    const matchingDay = plan.workoutSchedule.find(d => d.day.toLowerCase() === today.toLowerCase());
+    return matchingDay ? matchingDay.day : plan.workoutSchedule[0].day;
+  }, [plan]);
+
+  // Effect for Just-in-Time GIF loading
+  useEffect(() => {
+    if (!plan) return;
+
+    const todayDayStr = getTodayDayString();
+    const todaysWorkout = plan.workoutSchedule.find(d => d.day === todayDayStr);
+
+    // Check if today's workout exists, has exercises, and the first exercise doesn't have a gifUrl yet.
+    if (todaysWorkout && todaysWorkout.exercises.length > 0 && !todaysWorkout.exercises[0].gifUrl) {
+      const loadGifs = async () => {
+        try {
+          const enrichedDay = await fetchGifsForDay(todaysWorkout);
+          setWorkoutPlan(currentPlan => {
+            if (!currentPlan) return null;
+            const newSchedule = currentPlan.workoutSchedule.map(day => 
+              day.day === todayDayStr ? enrichedDay : day
+            );
+            return { ...currentPlan, workoutSchedule: newSchedule };
+          });
+        } catch (error) {
+          console.error("Failed to load GIFs for today:", error);
+        }
+      };
+      loadGifs();
+    }
+  }, [plan, setWorkoutPlan, getTodayDayString]);
+
+
+  const handleCompleteDay = useCallback(() => {
+    const todayStr = getTodayDateString();
+    if (userProfile.completedDays.includes(todayStr)) return;
+
+    if (streakIconRef.current) {
+        const rect = streakIconRef.current.getBoundingClientRect();
+        setStreakAnimationTarget({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
+    }
+    setShowStreakAnimation(true);
+
+    setUserProfile(prevProfile => {
+        if (!prevProfile) return null;
+        
+        const sortedDays = [...prevProfile.completedDays].sort();
+        let newStreak = 1;
+        if (sortedDays.length > 0) {
+            const lastCompletion = new Date(sortedDays[sortedDays.length - 1]);
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            if (lastCompletion.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0]) {
+                newStreak = prevProfile.streak + 1;
+            }
+        }
+
+        let newDiamonds = prevProfile.diamonds + 15;
+        // Check for chest reward
+        if (newStreak > 0 && newStreak % 5 === 0) {
+            const reward = Math.floor(Math.random() * (200 - 50 + 1)) + 50;
+            newDiamonds += reward;
+            setLastStreakReward({ day: newStreak, diamonds: reward });
+        } else {
+            setLastStreakReward(null);
+        }
+        
+        return {
+            ...prevProfile,
+            diamonds: newDiamonds,
+            streak: newStreak,
+            completedDays: [...prevProfile.completedDays, todayStr]
+        };
+    });
+  }, [userProfile, setUserProfile]);
+
   const handleToggleExercise = useCallback((day: string, exerciseName: string) => {
     setCompletedExercisesByDay(prev => {
         const newDaySet = new Set(prev[day] || []);
@@ -585,37 +764,12 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
         
         const workoutForDay = plan?.workoutSchedule.find(d => d.day === day);
         if (workoutForDay && workoutForDay.exercises.length > 0 && newDaySet.size === workoutForDay.exercises.length) {
-            const todayStr = getTodayDateString();
-            if (!userProfile.completedDays.includes(todayStr)) {
-                setShowCompletionAnimation(true);
-                setUserProfile(prevProfile => {
-                    if (!prevProfile) return null;
-                    
-                    const sortedDays = [...prevProfile.completedDays].sort();
-                    let newStreak = 1;
-                    if (sortedDays.length > 0) {
-                        const lastCompletion = new Date(sortedDays[sortedDays.length - 1]);
-                        const yesterday = new Date();
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        
-                        if (lastCompletion.toISOString().split('T')[0] === yesterday.toISOString().split('T')[0]) {
-                            newStreak = prevProfile.streak + 1;
-                        }
-                    }
-                    
-                    return {
-                        ...prevProfile,
-                        diamonds: prevProfile.diamonds + 15,
-                        streak: newStreak,
-                        completedDays: [...prevProfile.completedDays, todayStr]
-                    };
-                });
-            }
+            handleCompleteDay();
         }
         
         return { ...prev, [day]: newDaySet };
     });
-  }, [plan, userProfile, setUserProfile]);
+  }, [plan, handleCompleteDay]);
 
   const handleModifyPlan = async () => {
     if (!modificationRequest.trim() || !plan) return;
@@ -636,44 +790,52 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
     }
   };
 
+  const handleViewGif = (gifUrl: string, exerciseName: string) => {
+    setViewingGif({ url: gifUrl, name: exerciseName });
+  };
+
   if (!plan) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-        <h1 className="text-3xl font-bold">¡Bienvenido, {userProfile.name}!</h1>
-        <p className="mt-4 text-lg text-slate-600 dark:text-slate-300">Parece que aún no tienes un plan de entrenamiento.</p>
-        <p className="mt-2 text-slate-500 dark:text-slate-400">¡Hablemos con Bananín para crear uno perfecto para ti!</p>
-        <button onClick={onStartOnboarding} className="mt-8 bg-primary-600 text-white font-bold py-3 px-6 rounded-full shadow-lg text-lg hover:bg-primary-700 transform hover:scale-105 transition-all duration-300">
-          Crear mi Plan
-        </button>
-        <button onClick={onLogout} className="mt-4 text-sm text-slate-500 hover:text-primary-600">
-          Cerrar sesión
-        </button>
+      <div className="flex flex-col items-center justify-center min-h-screen p-4 bg-slate-100 dark:bg-slate-900">
+        <div className="w-full max-w-md bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 text-center border border-slate-200 dark:border-slate-700">
+            <div className="text-8xl animate-bounce">🍌</div>
+            <h1 className="text-3xl font-bold mt-6 text-slate-800 dark:text-white">¡Hola, {userProfile.name}!</h1>
+            <p className="mt-4 text-slate-600 dark:text-slate-300">
+                ¡Estás a un paso de comenzar tu aventura fitness! Deja que Bananín, tu entrenador personal de IA, cree un plan único solo para ti.
+            </p>
+            <button 
+                onClick={onStartOnboarding} 
+                className="mt-8 w-full bg-primary-600 text-white font-bold py-4 px-6 rounded-full shadow-lg text-lg hover:bg-primary-700 transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+            >
+                <SparklesIcon className="w-6 h-6" />
+                Crear Mi Plan Personalizado
+            </button>
+            <button onClick={onLogout} className="mt-4 text-sm text-slate-500 hover:text-primary-600 dark:text-slate-400 dark:hover:text-primary-400 transition-colors">
+                Cerrar sesión
+            </button>
+        </div>
       </div>
     );
   }
-
-  const getTodayDayString = () => {
-    const today = new Date().toLocaleString('en-US', { weekday: 'long' });
-    const matchingDay = plan.workoutSchedule.find(d => d.day.toLowerCase() === today.toLowerCase());
-    return matchingDay ? matchingDay.day : plan.workoutSchedule[0].day;
-  };
-
+  
   const renderContent = () => {
     const todayDayStr = getTodayDayString();
-    const isTodayCompleted = userProfile.completedDays.includes(getTodayDateString()) && !showCompletionAnimation;
+    if (!todayDayStr) return <div>Cargando...</div>; // Handle case where plan is not fully loaded
+
+    const isTodayCompleted = userProfile.completedDays.includes(getTodayDateString());
 
     let workout: DailyWorkout, diet: DailyDiet, isPreview = false, previewTitle = '';
+    const todayIndex = plan.workoutSchedule.findIndex(d => d.day === todayDayStr);
 
     if (isTodayCompleted) {
-        const todayIndex = plan.workoutSchedule.findIndex(d => d.day === todayDayStr);
         const nextDayIndex = (todayIndex + 1) % plan.workoutSchedule.length;
         workout = plan.workoutSchedule[nextDayIndex];
         diet = plan.dietPlan[nextDayIndex];
         isPreview = true;
         previewTitle = `Avance de Mañana: ${workout.focus}`;
     } else {
-        workout = plan.workoutSchedule.find(d => d.day === todayDayStr)!;
-        diet = plan.dietPlan.find(d => d.day === todayDayStr)!;
+        workout = plan.workoutSchedule[todayIndex];
+        diet = plan.dietPlan[todayIndex];
     }
 
     switch (activeView) {
@@ -683,11 +845,13 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
                     diet={diet}
                     completedExercises={completedExercisesByDay[workout.day] || new Set()}
                     onToggleExercise={(exerciseName) => handleToggleExercise(workout.day, exerciseName)}
+                    onCompleteDay={handleCompleteDay}
+                    onViewGif={handleViewGif}
                     isPreview={isPreview}
                     previewTitle={previewTitle}
                 />;
       case 'week':
-        return <WeekView plan={plan} completedExercisesByDay={completedExercisesByDay} />;
+        return <WeekView plan={plan} completedExercisesByDay={completedExercisesByDay} onViewGif={handleViewGif} />;
       case 'bananin':
         return <BananinView userProfile={userProfile} setUserProfile={setUserProfile} />;
       default:
@@ -696,6 +860,8 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
                     diet={diet}
                     completedExercises={completedExercisesByDay[workout.day] || new Set()}
                     onToggleExercise={(exerciseName) => handleToggleExercise(workout.day, exerciseName)}
+                    onCompleteDay={handleCompleteDay}
+                    onViewGif={handleViewGif}
                     isPreview={isPreview}
                     previewTitle={previewTitle}
                 />;
@@ -707,10 +873,10 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
     { id: 'week', label: 'Semana', icon: CalendarWeekIcon },
     { id: 'bananin', label: 'Bananín', icon: SparklesIcon },
   ];
-
+  
   return (
     <div className="flex flex-col min-h-screen">
-      <Header userProfile={userProfile} onProfileClick={toggleProfileSidebar} />
+      <Header userProfile={userProfile} onProfileClick={toggleProfileSidebar} onStreakClick={() => setIsStreakModalOpen(true)} streakIconRef={streakIconRef} />
       <main className="flex-grow max-w-7xl mx-auto p-4 md:p-8 w-full pb-24">
         <div key={activeView} className="animate-in fade-in-0 duration-500">
             {(activeView === 'day' || activeView === 'week') && (
@@ -728,8 +894,26 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
         </div>
       </main>
       
-      {showCompletionAnimation && <CompletionAnimation onClose={() => setShowCompletionAnimation(false)} />}
-      
+      <StreakFireAnimation
+        isOpen={showStreakAnimation}
+        onClose={() => setShowStreakAnimation(false)}
+        targetCoords={streakAnimationTarget}
+      />
+
+      <StreakModal 
+        isOpen={isStreakModalOpen}
+        onClose={() => setIsStreakModalOpen(false)}
+        userProfile={userProfile}
+        lastReward={lastStreakReward}
+        clearLastReward={() => setLastStreakReward(null)}
+      />
+
+      <GifViewerModal 
+        gifUrl={viewingGif?.url ?? null}
+        exerciseName={viewingGif?.name ?? null}
+        onClose={() => setViewingGif(null)}
+      />
+
       {isModifying && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in-0">
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-lg p-6 border border-slate-200 dark:border-slate-700 transform transition-all animate-in fade-in-0 zoom-in-95">
@@ -809,12 +993,13 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
 interface WorkoutScheduleProps {
     schedule: DailyWorkout[];
     completedExercisesByDay: Record<string, Set<string>>;
+    onViewGif: (gifUrl: string, exerciseName: string) => void;
 }
 
-const WorkoutSchedule: React.FC<WorkoutScheduleProps> = ({ schedule, completedExercisesByDay }) => (
+const WorkoutSchedule: React.FC<WorkoutScheduleProps> = ({ schedule, completedExercisesByDay, onViewGif }) => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {schedule.map((dayPlan) => {
-            const isRestDay = dayPlan.focus.toLowerCase() === 'rest' || dayPlan.focus.toLowerCase() === 'descanso';
+            const isRestDay = dayPlan.exercises.length === 0;
             const completedCount = completedExercisesByDay[dayPlan.day]?.size || 0;
             const totalExercises = dayPlan.exercises.length;
             const progress = totalExercises > 0 ? (completedCount / totalExercises) * 100 : 0;
@@ -831,7 +1016,7 @@ const WorkoutSchedule: React.FC<WorkoutScheduleProps> = ({ schedule, completedEx
                             <>
                                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Calentamiento: {dayPlan.warmup}</p>
                                 <div className="space-y-4 my-4">
-                                    {dayPlan.exercises.map((exercise, index) => <ExerciseCard key={index} exercise={exercise} />)}
+                                    {dayPlan.exercises.map((exercise, index) => <ExerciseCard key={index} exercise={exercise} onViewGif={onViewGif} />)}
                                 </div>
                                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Enfriamiento: {dayPlan.cooldown}</p>
                             </>
@@ -859,10 +1044,25 @@ interface ExerciseCardProps {
   exercise: Exercise;
   isCompleted?: boolean;
   onToggleCompletion?: () => void;
+  onViewGif?: (gifUrl: string, exerciseName: string) => void;
 }
 
-const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise, isCompleted, onToggleCompletion }) => {
+const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise, isCompleted, onToggleCompletion, onViewGif }) => {
     const isInteractive = onToggleCompletion !== undefined;
+    const [isAnimating, setIsAnimating] = useState(false);
+    const prevIsCompleted = useRef(isCompleted);
+
+    useEffect(() => {
+        // Trigger animation only when changing from not completed to completed
+        if (isCompleted && !prevIsCompleted.current) {
+            setIsAnimating(true);
+            const timer = setTimeout(() => {
+                setIsAnimating(false);
+            }, 700); // Must match animation duration
+            return () => clearTimeout(timer);
+        }
+        prevIsCompleted.current = isCompleted;
+    }, [isCompleted]);
     
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (isInteractive && (e.key === 'Enter' || e.key === ' ')) {
@@ -871,10 +1071,17 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise, isCompleted, onTo
         }
     };
 
+    const handleViewGif = (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent the card from toggling completion
+        if (onViewGif && exercise.gifUrl) {
+            onViewGif(exercise.gifUrl, exercise.name);
+        }
+    };
+
     return (
         <div 
             onClick={isInteractive ? onToggleCompletion : undefined}
-            className={`flex items-start gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg transition-all ${isInteractive ? 'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700' : ''} ${isCompleted ? 'opacity-60 dark:opacity-50' : ''}`}
+            className={`flex items-start gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg transition-all ${isInteractive ? 'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700' : ''} ${isCompleted ? 'opacity-60 dark:opacity-50' : ''} ${isAnimating ? 'animate-exercise-complete' : ''}`}
             role={isInteractive ? 'button' : undefined}
             tabIndex={isInteractive ? 0 : -1}
             aria-pressed={isInteractive ? isCompleted : undefined}
@@ -888,7 +1095,14 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise, isCompleted, onTo
                 </div>
             )}
             <div className="flex-grow">
-                <h4 className={`font-bold text-slate-800 dark:text-slate-100 ${isCompleted ? 'line-through' : ''}`}>{exercise.name}</h4>
+                <div className="flex justify-between items-center">
+                    <h4 className={`font-bold text-slate-800 dark:text-slate-100 ${isCompleted ? 'line-through' : ''}`}>{exercise.name}</h4>
+                    {onViewGif && exercise.gifUrl && (
+                        <button onClick={handleViewGif} className="text-primary-500 hover:text-primary-600 transition-colors" aria-label={`Ver GIF de ${exercise.name}`}>
+                            <PlayIcon className="w-6 h-6"/>
+                        </button>
+                    )}
+                </div>
                 <p className={`text-sm text-slate-600 dark:text-slate-300 mt-1 ${isCompleted ? 'line-through' : ''}`}>{exercise.description}</p>
                 <div className="flex justify-between items-center mt-2 text-sm font-mono text-slate-500 dark:text-slate-400">
                     <span>{exercise.sets} series</span>
