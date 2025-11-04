@@ -883,7 +883,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
             <div className="flex justify-center mb-6">
                 <button
                 onClick={() => setIsModifying(true)}
-                className="inline-flex items-center gap-2 bg-slate-200 dark:bg-slate-700 px-4 py-2 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+                className="inline-flex items-center gap-2 bg-slate-200 dark:bg-slate-700 px-4 py-2 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors animate-pulse-strong"
                 >
                 <SparklesIcon className="w-5 h-5 text-primary-500" />
                 Modificar Plan con IA
