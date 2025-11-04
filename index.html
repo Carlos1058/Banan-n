@@ -67,6 +67,21 @@
         --color-primary-50: 253 242 248; --color-primary-100: 252 231 243; --color-primary-200: 251 207 232; --color-primary-300: 249 168 212; --color-primary-400: 244 114 182; --color-primary-500: 236 72 153; --color-primary-600: 219 39 119; --color-primary-700: 190 24 93; --color-primary-800: 157 23 77; --color-primary-900: 131 24 67; --color-primary-950: 80 7 36;
       }
 
+      /* Blue Theme */
+      [data-theme="azul"] {
+        --color-primary-50: 240 249 255; --color-primary-100: 224 242 254; --color-primary-200: 186 230 253; --color-primary-300: 125 211 252; --color-primary-400: 56 189 248; --color-primary-500: 14 165 233; --color-primary-600: 2 132 199; --color-primary-700: 3 105 161; --color-primary-800: 7 89 133; --color-primary-900: 12 74 110; --color-primary-950: 8 51 68;
+      }
+      
+      /* Orange Theme */
+      [data-theme="naranja"] {
+        --color-primary-50: 255 247 237; --color-primary-100: 255 237 213; --color-primary-200: 254 215 170; --color-primary-300: 253 186 116; --color-primary-400: 251 146 60; --color-primary-500: 249 115 22; --color-primary-600: 234 88 12; --color-primary-700: 194 65 12; --color-primary-800: 154 52 18; --color-primary-900: 124 45 18; --color-primary-950: 67 20 7;
+      }
+
+      /* Purple Theme */
+      [data-theme="purpura"] {
+        --color-primary-50: 245 243 255; --color-primary-100: 237 233 254; --color-primary-200: 221 214 254; --color-primary-300: 196 181 253; --color-primary-400: 167 139 250; --color-primary-500: 139 92 246; --color-primary-600: 124 58 237; --color-primary-700: 109 40 217; --color-primary-800: 91 33 182; --color-primary-900: 76 29 149; --color-primary-950: 46 16 101;
+      }
+
       /* Gold Theme */
       [data-theme="oro"] {
         --color-primary-50: 255 252 234; --color-primary-100: 254 245 204; --color-primary-200: 253 234 153; --color-primary-300: 252 218 88; --color-primary-400: 250 195 45; --color-primary-500: 234 163 22; --color-primary-600: 202 124 15; --color-primary-700: 162 90 12; --color-primary-800: 130 68 12; --color-primary-900: 109 54 12; --color-primary-950: 60 25 3;
@@ -135,6 +150,19 @@
           transform: scale(1.05);
           box-shadow: 0 0 0 10px rgb(var(--color-primary-500) / 0);
         }
+      }
+
+      /* Bananin Animation */
+      @keyframes pulse-slow {
+        0%, 100% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.05);
+        }
+      }
+      .animate-pulse-slow {
+        animation: pulse-slow 3s infinite ease-in-out;
       }
       
       /* Animation for completing an exercise */

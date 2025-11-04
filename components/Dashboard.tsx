@@ -70,7 +70,56 @@ const XIcon = ({ className }: { className: string }) => (
     </svg>
 );
 
-// --- New Animation Component ---
+// --- New Icons ---
+const DumbbellIcon = ({ className }: { className: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+        <path d="M3 6.5A1.5 1.5 0 014.5 5h1.75a.75.75 0 000-1.5H4.5a3 3 0 00-3 3v4a3 3 0 003 3h1.75a.75.75 0 000-1.5H4.5a1.5 1.5 0 01-1.5-1.5v-4zM10 8a.75.75 0 000 1.5h1.25a.75.75 0 000-1.5H10zM8.75 8a.75.75 0 000 1.5H10a.75.75 0 000-1.5H8.75zM17 6.5a1.5 1.5 0 00-1.5-1.5h-1.75a.75.75 0 000 1.5h1.75a1.5 1.5 0 011.5 1.5v4a1.5 1.5 0 01-1.5-1.5h-1.75a.75.75 0 000 1.5h1.75a3 3 0 003-3v-4a3 3 0 00-3-3z" />
+    </svg>
+);
+
+const BreakfastIcon = ({ className }: { className: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+        <path d="M15.5 2.5a3 3 0 00-3-3H9a3 3 0 00-3 3v.528A4.453 4.453 0 004 7.5v2.71a.75.75 0 00.187.508l2.294 2.868a1.25 1.25 0 00.93.414h3.178a1.25 1.25 0 00.93-.414l2.294-2.868A.75.75 0 0016 10.21V7.5a4.453 4.453 0 00-1.5-4.472V2.5zM14.5 7.5a3 3 0 01-3 3H8.5a3 3 0 01-3-3V6.353a3.001 3.001 0 012.5-2.95V2.5a1.5 1.5 0 011.5-1.5h1.5a1.5 1.5 0 011.5 1.5v.903a3.001 3.001 0 012.5 2.95V7.5z" />
+        <path d="M5 16.5a1 1 0 011-1h8a1 1 0 010 2H6a1 1 0 01-1-1z" />
+    </svg>
+);
+
+const LunchIcon = ({ className }: { className: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M15.5 7.5a2.5 2.5 0 00-1.782-2.385.25.25 0 00-.318.318A2 2 0 0115 7.5v2.25a.75.75 0 01-1.5 0v-2.5a.25.25 0 00-.25-.25H6.25a.25.25 0 00-.25.25v2.5a.75.75 0 01-1.5 0V7.5a2 2 0 011.566-1.934.25.25 0 00-.318-.318A2.5 2.5 0 004.5 7.5v2.879a.25.25 0 00.07.177l6.5 6.5a.25.25 0 00.36 0l6.5-6.5a.25.25 0 00.07-.177V7.5z" clipRule="evenodd" />
+        <path d="M8 0a1 1 0 00-1 1v2.586a1 1 0 00.293.707l1.414 1.414a1 1 0 001.414 0L11.414 4.293A1 1 0 0011.707 3.586V1a1 1 0 00-1-1H8z" />
+    </svg>
+);
+
+const DinnerIcon = ({ className }: { className: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+        <path d="M2.586 3.086a.5.5 0 01.708-.708L14.95 14.03a.5.5 0 01-.708.708L2.586 3.086z" />
+        <path fillRule="evenodd" d="M5.015 2.382A.75.75 0 016 2h.243a.75.75 0 01.744.658l.26 1.298a.75.75 0 01-.21 1.05l-.341.342a.75.75 0 01-1.06 0l-.342-.341a.75.75 0 01.114-1.144l.217-.109a2.25 2.25 0 00-2.362-2.362l-.11.217a.75.75 0 01-1.143.114L2.03 4.075a.75.75 0 010-1.06l.341-.341a.75.75 0 011.05-.21l1.298.26A.75.75 0 015.015 2.382zM17.43 14.28a.75.75 0 01-1.05.21l-1.298-.26a.75.75 0 01-.658-.744V13a.75.75 0 01.75-.75h1.25a.75.75 0 01.75.75v.015c.33.023.655.093.966.208a.75.75 0 01.21 1.05l-.34.34a.75.75 0 01-1.06 0l-.016-.015z" clipRule="evenodd" />
+    </svg>
+);
+
+const SnackIcon = ({ className }: { className: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M10 2a4 4 0 00-3.328 1.635l-1.42 2.13A4 4 0 002 9.215V14.5A1.5 1.5 0 003.5 16h13a1.5 1.5 0 001.5-1.5V9.215a4 4 0 00-3.252-3.45l-1.42-2.13A4 4 0 0010 2zm0 1.5a2.5 2.5 0 011.968 1.01l1.42 2.13a.5.5 0 010 .4l-1.42 2.13A2.5 2.5 0 0110 10.5a2.5 2.5 0 01-1.968-1.01L6.612 7.36a.5.5 0 010-.4l1.42-2.13A2.5 2.5 0 0110 3.5zM4 14.5V9.215a2.5 2.5 0 012.032-2.4l.25-.05a4.012 4.012 0 001.995.835 4 4 0 003.446 0 4.012 4.012 0 001.995-.835l.25.05A2.5 2.5 0 0116 9.215V14.5H4z" clipRule="evenodd" />
+    </svg>
+);
+
+const CheckCircleIcon = ({ className }: { className: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
+        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586l-1.293-1.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+    </svg>
+);
+
+const getMealIcon = (mealName: string) => {
+    const lowerCaseName = mealName.toLowerCase();
+    if (lowerCaseName.includes('desayuno')) return <BreakfastIcon className="w-6 h-6 text-amber-500" />;
+    if (lowerCaseName.includes('almuerzo') || lowerCaseName.includes('comida')) return <LunchIcon className="w-6 h-6 text-orange-500" />;
+    if (lowerCaseName.includes('cena')) return <DinnerIcon className="w-6 h-6 text-indigo-500" />;
+    if (lowerCaseName.includes('snack') || lowerCaseName.includes('merienda')) return <SnackIcon className="w-6 h-6 text-green-500" />;
+    return null;
+};
+
+// --- Animation Component ---
 const StreakFireAnimation: React.FC<{
     isOpen: boolean;
     onClose: () => void;
@@ -138,7 +187,7 @@ const StreakFireAnimation: React.FC<{
     );
 };
 
-// --- New GIF Viewer Modal (replaces VideoPlayerModal) ---
+// --- GIF Viewer Modal (replaces VideoPlayerModal) ---
 const GifViewerModal: React.FC<{ gifUrl: string | null; exerciseName: string | null; onClose: () => void }> = ({ gifUrl, exerciseName, onClose }) => {
     if (!gifUrl) return null;
 
@@ -246,7 +295,10 @@ const DayView: React.FC<DayViewProps> = ({ workout, diet, completedExercises, on
                             {diet.meals.map((meal) => (
                                 <div key={meal.name} className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                                     <div className="flex justify-between items-center">
-                                        <h4 className="font-bold text-slate-800 dark:text-slate-100">{meal.name}</h4>
+                                        <h4 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-3">
+                                          {getMealIcon(meal.name)}
+                                          <span>{meal.name}</span>
+                                        </h4>
                                         <span className="text-xs font-mono bg-primary-100 text-primary-700 px-2 py-1 rounded-full">{meal.calories} kcal</span>
                                     </div>
                                     <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{meal.description}</p>
@@ -300,6 +352,9 @@ const BananinView: React.FC<{ userProfile: UserProfile, setUserProfile: React.Di
         { id: 'default', name: 'BanaFit Original', price: 0, previewClass: 'bg-amber-400' },
         { id: 'verde', name: 'Verde Vitalidad', price: 100, previewClass: 'bg-green-500' },
         { id: 'rosa', name: 'Rosa Poder', price: 100, previewClass: 'bg-pink-500' },
+        { id: 'azul', name: 'Azul Océano', price: 150, previewClass: 'bg-sky-500' },
+        { id: 'naranja', name: 'Naranja Atardecer', price: 150, previewClass: 'bg-orange-500' },
+        { id: 'purpura', name: 'Púrpura Galaxia', price: 150, previewClass: 'bg-violet-500' },
         { id: 'oro', name: 'Fiebre del Oro', price: 1500, previewClass: 'bg-yellow-400' },
         { id: 'diamante', name: 'Polvo de Diamante', price: 2500, previewClass: 'bg-cyan-300' },
         { id: 'obsidiana', name: 'Noche Obsidiana', price: 2500, previewClass: 'bg-slate-800' },
@@ -344,7 +399,7 @@ const BananinView: React.FC<{ userProfile: UserProfile, setUserProfile: React.Di
     <div className="max-w-2xl mx-auto p-4">
         <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700">
             <h2 className="text-3xl font-bold mb-2">¡Tu Amigo Bananín!</h2>
-            <div className="text-8xl my-6 animate-bounce">🍌</div>
+            <div className="text-8xl my-6 animate-pulse-slow">🍌</div>
             <p className="text-slate-500 dark:text-slate-400">¡Completa tus entrenamientos para ganar diamantes y mantener tu racha!</p>
         </div>
         
@@ -356,7 +411,7 @@ const BananinView: React.FC<{ userProfile: UserProfile, setUserProfile: React.Di
 
             {/* App Themes Section */}
             <div className="mb-8">
-                <h4 className="text-lg font-semibold mb-3">Temas de la App</h4>
+                <h4 className="text-lg font-semibold mb-3">Paletas de Colores</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {themes.map(theme => {
                         const isOwned = userProfile.purchasedThemes?.includes(theme.id);
@@ -1003,9 +1058,15 @@ const WorkoutSchedule: React.FC<WorkoutScheduleProps> = ({ schedule, completedEx
             const completedCount = completedExercisesByDay[dayPlan.day]?.size || 0;
             const totalExercises = dayPlan.exercises.length;
             const progress = totalExercises > 0 ? (completedCount / totalExercises) * 100 : 0;
+            const isDayCompleted = totalExercises > 0 && completedCount === totalExercises;
 
             return (
-                <div key={dayPlan.day} className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700 flex flex-col">
+                <div key={dayPlan.day} className={`relative bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border flex flex-col transition-all ${isDayCompleted ? 'border-green-400 dark:border-green-600' : 'border-slate-200 dark:border-slate-700'}`}>
+                    {isDayCompleted && (
+                        <div className="absolute top-3 right-3 text-green-500" title="Día completado">
+                            <CheckCircleIcon className="w-7 h-7" />
+                        </div>
+                    )}
                     <h3 className="text-xl font-bold text-primary-600 dark:text-primary-400">{dayPlan.day}</h3>
                     <p className="font-semibold text-slate-700 dark:text-slate-300 mb-4">{dayPlan.focus}</p>
 
@@ -1096,7 +1157,10 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise, isCompleted, onTo
             )}
             <div className="flex-grow">
                 <div className="flex justify-between items-center">
-                    <h4 className={`font-bold text-slate-800 dark:text-slate-100 ${isCompleted ? 'line-through' : ''}`}>{exercise.name}</h4>
+                    <h4 className={`font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 ${isCompleted ? 'line-through' : ''}`}>
+                        <DumbbellIcon className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+                        <span>{exercise.name}</span>
+                    </h4>
                     {onViewGif && exercise.gifUrl && (
                         <button onClick={handleViewGif} className="text-primary-500 hover:text-primary-600 transition-colors" aria-label={`Ver GIF de ${exercise.name}`}>
                             <PlayIcon className="w-6 h-6"/>
@@ -1127,7 +1191,10 @@ const DietPlan: React.FC<{ plan: DailyDiet[] }> = ({ plan }) => (
                     {dayPlan.meals.map((meal) => (
                         <div key={meal.name} className="p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                             <div className="flex justify-between items-center">
-                                <h4 className="font-bold text-slate-800 dark:text-slate-100">{meal.name}</h4>
+                                <h4 className="font-bold text-slate-800 dark:text-slate-100 flex items-center gap-3">
+                                    {getMealIcon(meal.name)}
+                                    <span>{meal.name}</span>
+                                </h4>
                                 <span className="text-xs font-mono bg-primary-100 text-primary-700 px-2 py-1 rounded-full">{meal.calories} kcal</span>
                             </div>
                             <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{meal.description}</p>
