@@ -21,7 +21,7 @@ const questionsBase = [
   { key: 'physicalLimitations', question: "Importante: ¿Tienes alguna limitación física o lesión que deba tener en cuenta?", type: 'text', placeholder: "Ej: Dolor en la rodilla, 'Ninguna'" },
   { key: 'foodPreferences', question: "Hablemos de comida. ¿Tienes alguna preferencia alimenticia?", type: 'select', options: ['Ninguna', 'Vegetariano', 'Vegano', 'Pescetariano'] },
   { key: 'allergies', question: "¿Alguna alergia alimentaria?", type: 'text', placeholder: "Ej: Maní, 'Ninguna'" },
-  { key: 'budget', question: "Para la dieta, ¿cuál es tu presupuesto semanal aproximado para la compra?", type: 'number', placeholder: 'Ej: 50' },
+  { key: 'budget', question: "Para la dieta, ¿cuál es tu presupuesto semanal aproximado para la compra (en MXN)?", type: 'number', placeholder: 'Ej: 500' },
   // New questions for Avanzado & Experto
   { key: 'sleepHours', question: 'En promedio, ¿cuántas horas duermes por noche?', type: 'select', options: ['Menos de 6 horas', '6-7 horas', '7-8 horas', 'Más de 8 horas'] },
   { key: 'trainingTime', question: '¿Cuánto tiempo tienes para cada sesión de entrenamiento?', type: 'select', options: ['30 minutos o menos', '30-45 minutos', '45-60 minutos', 'Más de 60 minutos'] },
@@ -72,7 +72,8 @@ const OnboardingAssistant: React.FC<OnboardingAssistantProps> = ({ userName, onC
 
 
   const questions = useMemo(() => {
-    if (detailLevel === 'sencillo') return [questionsBase[4], questionsBase[5], questionsBase[7]]; // Goal, fitness level, equipment
+    // Sencillo now includes budget for the shopping list feature
+    if (detailLevel === 'sencillo') return [questionsBase[4], questionsBase[5], questionsBase[7], questionsBase[11]]; // Goal, fitness level, equipment, budget
     if (detailLevel === 'avanzado') return questionsBase;
     if (detailLevel === 'experto') return questionsExperto;
     return [];

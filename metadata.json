@@ -2,6 +2,7 @@
   "name": "BanaFit: Your Fun Fitness Pal",
   "description": "Your AI-powered virtual coach, now with a fun twist! Get personalized fitness and nutrition plans while keeping your mascot, Bananín, happy by maintaining your workout streak and unlocking cool accessories.",
   "requestFramePermissions": [
-    "microphone"
+    "microphone",
+    "geolocation"
   ]
 }

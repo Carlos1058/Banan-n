@@ -1,5 +1,5 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { UserProfile, WorkoutPlan, Exercise, DailyWorkout } from "../types";
+import { UserProfile, WorkoutPlan, DailyDiet, ShoppingList } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
@@ -64,6 +64,41 @@ const workoutPlanSchema = {
   },
   required: ["workoutSchedule", "dietPlan"],
 };
+
+const shoppingListSchema = {
+    type: Type.OBJECT,
+    properties: {
+        summary: { type: Type.STRING, description: "Un breve y amigable resumen de la lista de compras, en el tono de Bananín." },
+        list: {
+            type: Type.ARRAY,
+            description: "La lista de compras detallada y categorizada.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    item: { type: Type.STRING, description: "Nombre del ingrediente (ej. 'Pechuga de pollo')." },
+                    quantity: { type: Type.STRING, description: "Cantidad sugerida (ej. '500g', '2 unidades')." },
+                    category: { type: Type.STRING, description: "Categoría del producto (ej. 'Proteínas', 'Frutas y Verduras', 'Lácteos', 'Abarrotes')." },
+                },
+                required: ["item", "quantity", "category"],
+            },
+        },
+        store_suggestions: {
+            type: Type.ARRAY,
+            description: "Sugerencias de tipos de tiendas donde comprar los productos.",
+            items: {
+                type: Type.OBJECT,
+                properties: {
+                    type: { type: Type.STRING, description: "Tipo de tienda (ej. 'Mercado Local', 'Supermercado Económico', 'Tiendita de la esquina')." },
+                    name_example: { type: Type.STRING, description: "Un ejemplo del nombre de la tienda (ej. 'Mercado de San Juan', 'Bodega Aurrerá', 'Abarrotes Don Pepe')." },
+                    notes: { type: Type.STRING, description: "Una nota sobre por qué se sugiere esta tienda, idealmente promoviendo el comercio local." },
+                },
+                required: ["type", "name_example", "notes"],
+            }
+        },
+    },
+    required: ["summary", "list", "store_suggestions"],
+};
+
 
 // Generates a detailed prompt for the AI based on the user's profile.
 const generatePrompt = (profile: UserProfile): string => {
@@ -146,6 +181,32 @@ const generateModificationPrompt = (profile: UserProfile, currentPlan: WorkoutPl
     `;
 };
 
+const generateShoppingListPrompt = (
+    dietPlan: DailyDiet[], 
+    budget: number, 
+    location?: { latitude: number, longitude: number }
+): string => {
+    let prompt = `
+    You are Bananín, a friendly and helpful fitness assistant. Based on the provided diet plan and user information, create a categorized shopping list and suggest places to buy the ingredients. The response must be in Spanish.
+
+    User's Diet Plan:
+    ${JSON.stringify(dietPlan)}
+
+    User's Information:
+    - Weekly grocery budget: $${budget} MXN.
+    ${location ? `- Approximate location: Latitude ${location.latitude}, Longitude ${location.longitude}.` : ''}
+
+    Instructions:
+    1.  **Analyze Diet Plan**: Extract all unique ingredients needed for the meals. Consolidate items (e.g., if chicken is listed twice, list it once with the total quantity).
+    2.  **Create Shopping List**: Organize the ingredients into logical categories: 'Frutas y Verduras', 'Proteínas', 'Lácteos y Huevos', 'Abarrotes' (pantry staples), 'Otros'. Provide a realistic quantity for each item (e.g., '500g', '1 manojo', '2 latas').
+    3.  **Suggest Stores**: Provide 3-4 diverse suggestions for where to shop, keeping the budget in mind.
+    4.  **VERY IMPORTANT - Promote Local**: Your top priority is to encourage the user to support local businesses. Your first suggestions should ALWAYS be for 'Mercados locales', 'Tianguis sobre ruedas', 'Verdulerías de barrio', 'Carnicerías locales', etc. Emphasize that these places offer fresh products and better prices, and that buying there helps the local economy.
+    5.  **Other Stores**: You can also mention budget-friendly supermarkets (e.g., Bodega Aurrerá, Soriana) as an alternative for non-perishable items.
+    6.  **Friendly Tone**: Write the 'summary' in an encouraging and fun tone, as Bananín.
+    7.  **Format**: Return the response in the specified JSON format.
+    `;
+    return prompt;
+};
 
 export const generateWorkoutPlan = async (userProfile: UserProfile): Promise<WorkoutPlan> => {
     try {
@@ -202,5 +263,38 @@ export const modifyWorkoutPlan = async (userProfile: UserProfile, currentPlan: W
     } catch (error) {
         console.error("Error modifying workout plan:", error);
         throw new Error("Failed to modify workout plan. Please try again.");
+    }
+};
+
+export const generateShoppingList = async (
+    dietPlan: DailyDiet[], 
+    budget: number, 
+    location?: { latitude: number, longitude: number }
+): Promise<ShoppingList> => {
+    try {
+        const model = 'gemini-2.5-pro';
+        const prompt = generateShoppingListPrompt(dietPlan, budget, location);
+
+        const response = await ai.models.generateContent({
+            model: model,
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: shoppingListSchema,
+            },
+        });
+
+        const jsonText = response.text.trim();
+        const shoppingList = JSON.parse(jsonText) as ShoppingList;
+
+        if (!shoppingList.list || !shoppingList.store_suggestions) {
+            throw new Error("Invalid shopping list structure received from API.");
+        }
+        
+        return shoppingList;
+
+    } catch (error) {
+        console.error("Error generating shopping list:", error);
+        throw new Error("Failed to generate shopping list. Please try again.");
     }
 };

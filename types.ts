@@ -79,3 +79,23 @@ export interface WorkoutPlan {
   workoutSchedule: DailyWorkout[];
   dietPlan: DailyDiet[];
 }
+
+// --- New Types for Shopping List ---
+
+export interface ShoppingListItem {
+  item: string;
+  quantity: string;
+  category: string;
+}
+
+export interface StoreSuggestion {
+  type: string;
+  name_example: string;
+  notes: string;
+}
+
+export interface ShoppingList {
+  list: ShoppingListItem[];
+  store_suggestions: StoreSuggestion[];
+  summary: string;
+}

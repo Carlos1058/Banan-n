@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { UserProfile, WorkoutPlan, DailyWorkout, DailyDiet, Exercise } from '../types';
-import { modifyWorkoutPlan } from '../services/geminiService';
+import { UserProfile, WorkoutPlan, DailyWorkout, DailyDiet, Exercise, ShoppingList } from '../types';
+import { modifyWorkoutPlan, generateShoppingList } from '../services/geminiService';
 import Header from './Header';
 import StreakModal from './StreakModal';
 import WelcomeToast from './WelcomeToast';
@@ -65,6 +65,13 @@ const XIcon = ({ className }: { className: string }) => (
         <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
     </svg>
 );
+
+const SettingsIcon = ({ className }: { className: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+    </svg>
+);
+
 
 // --- New Icons ---
 const DumbbellIcon = ({ className }: { className: string }) => (
@@ -435,7 +442,7 @@ const BananinView: React.FC<{ userProfile: UserProfile, setUserProfile: React.Di
     );
 }
 
-type ActiveView = 'day' | 'week' | 'bananin';
+type ActiveView = 'day' | 'week' | 'bananin' | 'settings';
 
 const ProfileNavButton: React.FC<{
     icon: React.ElementType,
@@ -497,22 +504,33 @@ const ProfileView: React.FC<{
             reader.readAsDataURL(file);
         }
     };
-
+// FIX START: handleProfileChange was not type-safe, causing potential type corruption in the state.
     const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setEditableProfile(prev => {
-            let finalValue: any = value;
-             if (name === 'availableEquipment') {
-                finalValue = value.split(',').map(s => s.trim());
-            } else if (e.target.type === 'number' && value !== '') {
-                finalValue = Number(value);
+            const newProfile = { ...prev };
+            const key = name as keyof UserProfile;
+
+            // This is a safe way to handle different types of inputs without losing type safety
+            if (key === 'availableEquipment') {
+                newProfile[key] = value.split(',').map(s => s.trim());
+            } else if (
+                key === 'age' || 
+                key === 'weight' || 
+                key === 'height' || 
+                key === 'budget' ||
+                key === 'neckCircumference' ||
+                key === 'waistCircumference' ||
+                key === 'hipCircumference'
+            ) {
+                 (newProfile as any)[key] = value === '' ? 0 : Number(value);
+            } else {
+                 (newProfile as any)[key] = value;
             }
-            return {
-                ...prev,
-                [name]: finalValue,
-            };
+            return newProfile;
         });
     };
+// FIX END
 
     const handleSave = () => {
         setUserProfile(editableProfile);
@@ -656,6 +674,7 @@ const ProfileView: React.FC<{
                     <ProfileNavButton icon={CalendarIcon} label="Día" view="day" currentView={activeView} setView={setActiveView} closeSidebar={closeSidebar} />
                     <ProfileNavButton icon={CalendarWeekIcon} label="Semana" view="week" currentView={activeView} setView={setActiveView} closeSidebar={closeSidebar} />
                     <ProfileNavButton icon={SparklesIcon} label="Bananín" view="bananin" currentView={activeView} setView={setActiveView} closeSidebar={closeSidebar} />
+                    <ProfileNavButton icon={SettingsIcon} label="Ajustes" view="settings" currentView={activeView} setView={setActiveView} closeSidebar={closeSidebar} />
                 </div>
             </div>
 
@@ -672,6 +691,155 @@ const ProfileView: React.FC<{
             <button onClick={onLogout} className="mt-8 w-full bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold py-3 px-4 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors">
               Cerrar sesión
             </button>
+        </div>
+    );
+};
+
+// --- Settings View ---
+
+interface SettingsViewProps {
+    onModifyPlanClick: () => void;
+    userProfile: UserProfile;
+    plan: WorkoutPlan;
+}
+
+const SettingsView: React.FC<SettingsViewProps> = ({ onModifyPlanClick, userProfile, plan }) => {
+    const [isLoadingList, setIsLoadingList] = useState(false);
+    const [shoppingList, setShoppingList] = useState<ShoppingList | null>(null);
+    const [listError, setListError] = useState<string | null>(null);
+    const [listScope, setListScope] = useState<'day' | 'week' | null>(null);
+
+    const handleGenerateList = (scope: 'day' | 'week') => {
+        setIsLoadingList(true);
+        setListError(null);
+        setShoppingList(null);
+        setListScope(scope);
+
+        navigator.geolocation.getCurrentPosition(
+            async (position) => {
+                const { latitude, longitude } = position.coords;
+                try {
+                    const dietPlan = scope === 'day' 
+                        ? [plan.dietPlan.find(d => d.day === new Date().toLocaleString('en-US', { weekday: 'long' })) || plan.dietPlan[0]]
+                        : plan.dietPlan;
+                    
+                    const list = await generateShoppingList(dietPlan, userProfile.budget, { latitude, longitude });
+                    setShoppingList(list);
+                } catch (err) {
+                    console.error(err);
+                    setListError('Bananín no pudo crear la lista. ¡Inténtalo de nuevo!');
+                } finally {
+                    setIsLoadingList(false);
+                }
+            },
+            async (error) => {
+                // Geolocation failed, generate list without location
+                console.warn("Geolocation failed:", error.message);
+                 try {
+                    const dietPlan = scope === 'day' 
+                        ? [plan.dietPlan.find(d => d.day === new Date().toLocaleString('en-US', { weekday: 'long' })) || plan.dietPlan[0]]
+                        : plan.dietPlan;
+
+                    const list = await generateShoppingList(dietPlan, userProfile.budget);
+                    setShoppingList(list);
+                } catch (err) {
+                    console.error(err);
+                    setListError('Bananín no pudo crear la lista. ¡Inténtalo de nuevo!');
+                } finally {
+                    setIsLoadingList(false);
+                }
+            }
+        );
+    };
+
+    const groupedList = shoppingList?.list.reduce((acc, item) => {
+        (acc[item.category] = acc[item.category] || []).push(item);
+        return acc;
+    }, {} as Record<string, typeof shoppingList.list>);
+
+    return (
+        <div className="space-y-8 max-w-4xl mx-auto">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700">
+                <h2 className="text-2xl font-bold mb-4">Ajustes del Plan</h2>
+                <p className="text-slate-500 dark:text-slate-400 mb-4">¿Necesitas un cambio? Dile a Bananín qué ajustar en tu plan de entrenamiento o dieta.</p>
+                <button
+                    onClick={onModifyPlanClick}
+                    className="inline-flex items-center gap-2 bg-primary-600 px-5 py-3 rounded-full text-md font-semibold text-white hover:bg-primary-700 transition-colors shadow"
+                >
+                    <SparklesIcon className="w-5 h-5" />
+                    Modificar Plan con IA
+                </button>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-md p-6 border border-slate-200 dark:border-slate-700">
+                <h2 className="text-2xl font-bold mb-4">Asistente de Compras</h2>
+                <p className="text-slate-500 dark:text-slate-400 mb-4">
+                    ¡Deja que Bananín te ayude con el súper! Genera una lista de compras inteligente basada en tu plan de dieta.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <button 
+                        onClick={() => handleGenerateList('day')} 
+                        disabled={isLoadingList}
+                        className="flex-1 bg-slate-200 dark:bg-slate-700 px-4 py-3 rounded-lg font-semibold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
+                    >
+                        {isLoadingList && listScope === 'day' ? 'Generando...' : 'Lista para Hoy'}
+                    </button>
+                    <button 
+                        onClick={() => handleGenerateList('week')} 
+                        disabled={isLoadingList}
+                        className="flex-1 bg-slate-200 dark:bg-slate-700 px-4 py-3 rounded-lg font-semibold hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors disabled:opacity-50"
+                    >
+                        {isLoadingList && listScope === 'week' ? 'Generando...' : 'Lista para la Semana'}
+                    </button>
+                </div>
+                {isLoadingList && <div className="progress-bar-indeterminate w-full mt-4"></div>}
+                {listError && <p className="text-red-500 mt-4">{listError}</p>}
+                
+                {shoppingList && (
+                    <div className="mt-6 space-y-6 animate-in fade-in-0 duration-500">
+                        <p className="p-4 bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-200 rounded-lg border border-primary-200 dark:border-primary-500/30">{shoppingList.summary}</p>
+                        
+                        <div className="grid md:grid-cols-2 gap-6">
+                            {/* Shopping List */}
+                            <div>
+                                <h3 className="text-xl font-bold mb-3">Tu Lista de Compras</h3>
+                                <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
+                                    {groupedList && Object.entries(groupedList).map(([category, items]) => (
+                                        <div key={category}>
+                                            <h4 className="font-bold text-primary-600 dark:text-primary-400">{category}</h4>
+                                            <ul className="mt-2 space-y-1 list-disc list-inside text-slate-600 dark:text-slate-300">
+                                                {items.map(item => (
+                                                    <li key={item.item}>
+                                                        <span className="font-semibold">{item.item}</span> ({item.quantity})
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                            {/* Map and Suggestions */}
+                            <div>
+                                <h3 className="text-xl font-bold mb-3">Dónde Comprar</h3>
+                                <div className="bg-slate-100 dark:bg-slate-700/50 rounded-lg p-4">
+                                    <div className="aspect-video bg-green-200 dark:bg-green-900/50 rounded flex items-center justify-center mb-4">
+                                        <p className="font-bold text-green-700 dark:text-green-300">🗺️ Mapa Simulado</p>
+                                    </div>
+                                    <div className="space-y-3">
+                                        {shoppingList.store_suggestions.map(store => (
+                                            <div key={store.type}>
+                                                <h4 className="font-bold">{store.type} <span className="text-sm font-normal text-slate-500 dark:text-slate-400">(ej. {store.name_example})</span></h4>
+                                                <p className="text-sm text-slate-600 dark:text-slate-300">{store.notes}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                )}
+            </div>
         </div>
     );
 };
@@ -868,6 +1036,8 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
         return <WeekView plan={plan} completedExercisesByDay={completedExercisesByDay} />;
       case 'bananin':
         return <BananinView userProfile={userProfile} setUserProfile={setUserProfile} />;
+       case 'settings':
+        return <SettingsView onModifyPlanClick={() => setIsModifying(true)} userProfile={userProfile} plan={plan} />;
       default:
         return <DayView 
                     workout={workout} 
@@ -885,6 +1055,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
     { id: 'day', label: 'Día', icon: CalendarIcon },
     { id: 'week', label: 'Semana', icon: CalendarWeekIcon },
     { id: 'bananin', label: 'Bananín', icon: SparklesIcon },
+    { id: 'settings', label: 'Ajustes', icon: SettingsIcon },
   ];
   
   return (
@@ -898,17 +1069,6 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
       <Header userProfile={userProfile} onProfileClick={toggleProfileSidebar} onStreakClick={() => setIsStreakModalOpen(true)} onDiamondClick={() => setIsDiamondModalOpen(true)} streakIconRef={streakIconRef} />
       <main className="flex-grow max-w-7xl mx-auto p-4 md:p-8 w-full pb-24">
         <div key={activeView} className="animate-in fade-in-0 duration-500">
-            {(activeView === 'day' || activeView === 'week') && (
-            <div className="flex justify-center mb-6">
-                <button
-                onClick={() => setIsModifying(true)}
-                className="inline-flex items-center gap-2 bg-slate-200 dark:bg-slate-700 px-4 py-2 rounded-full text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors animate-pulse-strong"
-                >
-                <SparklesIcon className="w-5 h-5 text-primary-500" />
-                Modificar Plan con IA
-                </button>
-            </div>
-            )}
             {renderContent()}
         </div>
       </main>
