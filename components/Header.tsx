@@ -11,10 +11,11 @@ interface HeaderProps {
     userProfile: UserProfile;
     onProfileClick: () => void;
     onStreakClick: () => void;
+    onDiamondClick: () => void;
     streakIconRef: React.RefObject<HTMLButtonElement>;
 }
 
-const Header: React.FC<HeaderProps> = ({ userProfile, onProfileClick, onStreakClick, streakIconRef }) => {
+const Header: React.FC<HeaderProps> = ({ userProfile, onProfileClick, onStreakClick, onDiamondClick, streakIconRef }) => {
     
     const renderFrame = (frameId?: string) => {
         const baseStyle = { position: 'absolute', pointerEvents: 'none' } as React.CSSProperties;
@@ -50,10 +51,14 @@ const Header: React.FC<HeaderProps> = ({ userProfile, onProfileClick, onStreakCl
                         <span>🔥</span>
                         <span className="text-slate-800 dark:text-slate-100">{userProfile.streak}</span>
                     </button>
-                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-full">
+                    <button 
+                        onClick={onDiamondClick}
+                        className="flex items-center gap-1 bg-slate-100 dark:bg-slate-700 px-3 py-1.5 rounded-full transition-transform hover:scale-105"
+                        aria-label="Conseguir más diamantes"
+                    >
                         <span>💎</span>
                         <span className="text-slate-800 dark:text-slate-100">{userProfile.diamonds}</span>
-                    </div>
+                    </button>
                 </div>
                 <button onClick={onProfileClick} className="relative focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 rounded-full" aria-label="Abrir perfil">
                     <div className="h-10 w-10">

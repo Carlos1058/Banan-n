@@ -4,6 +4,7 @@ import { modifyWorkoutPlan } from '../services/geminiService';
 import Header from './Header';
 import StreakModal from './StreakModal';
 import WelcomeToast from './WelcomeToast';
+import DiamondModal from './DiamondModal';
 
 interface DashboardProps {
   userProfile: UserProfile;
@@ -499,10 +500,18 @@ const ProfileView: React.FC<{
 
     const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
-        setEditableProfile(prev => ({
-            ...prev,
-            [name]: (e.target.type === 'number' && value !== '') ? Number(value) : value,
-        }));
+        setEditableProfile(prev => {
+            let finalValue: any = value;
+             if (name === 'availableEquipment') {
+                finalValue = value.split(',').map(s => s.trim());
+            } else if (e.target.type === 'number' && value !== '') {
+                finalValue = Number(value);
+            }
+            return {
+                ...prev,
+                [name]: finalValue,
+            };
+        });
     };
 
     const handleSave = () => {
@@ -518,23 +527,22 @@ const ProfileView: React.FC<{
     const goalOptions = ['Perder peso', 'Ganar músculo', 'Mantenerme activo', 'Mejorar resistencia'];
     const fitnessLevelOptions = ['Principiante', 'Intermedio', 'Avanzado'];
     const exerciseHabitsOptions = ['Nunca', '1-2 veces por semana', '3-5 veces por semana', 'Casi todos los días'];
-    const availableEquipmentOptions = ['Solo mi cuerpo', 'Mancuernas y bandas', 'Un gimnasio completo'];
 
-    const renderDetailField = (label: string, value: string | number, unit?: string) => (
+    const renderDetailField = (label: string, value: string | number | string[], unit?: string) => (
         <div className="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-lg">
             <p className="text-sm text-slate-500 dark:text-slate-400">{label}</p>
-            <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">{value} {unit || ''}</p>
+            <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">{Array.isArray(value) ? value.join(', ') : value} {unit || ''}</p>
         </div>
     );
     
     const renderInputField = (label: string, name: keyof UserProfile, type: 'text' | 'number', unit?: string) => (
-         <div className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg">
+         <div className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg col-span-2 md:col-span-3">
             <label className="text-sm text-slate-500 dark:text-slate-400 block mb-1">{label}</label>
             <div className="flex items-baseline">
                 <input
                     type={type}
                     name={name}
-                    value={editableProfile[name] as string | number}
+                    value={Array.isArray(editableProfile[name]) ? (editableProfile[name] as string[]).join(', ') : editableProfile[name] as string | number}
                     onChange={handleProfileChange}
                     className="w-full bg-transparent text-lg font-semibold text-slate-800 dark:text-slate-100 focus:outline-none"
                 />
@@ -627,7 +635,7 @@ const ProfileView: React.FC<{
                     {isEditing ? renderInputField('Altura', 'height', 'number', 'cm') : renderDetailField('Altura', userProfile.height, 'cm')}
                     {isEditing ? renderSelectField('Nivel Físico', 'fitnessLevel', fitnessLevelOptions) : renderDetailField('Nivel Físico', userProfile.fitnessLevel)}
                     {isEditing ? renderSelectField('Hábitos', 'exerciseHabits', exerciseHabitsOptions) : renderDetailField('Hábitos', userProfile.exerciseHabits)}
-                    {isEditing ? renderSelectField('Equipamiento', 'availableEquipment', availableEquipmentOptions) : renderDetailField('Equipamiento', userProfile.availableEquipment)}
+                    {isEditing ? renderInputField('Equipamiento', 'availableEquipment', 'text') : renderDetailField('Equipamiento', userProfile.availableEquipment)}
                 </div>
 
                 <div className="mt-8 w-full flex items-center gap-4">
@@ -681,6 +689,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
   const [completedExercisesByDay, setCompletedExercisesByDay] = useState<Record<string, Set<string>>>({});
   const [showStreakAnimation, setShowStreakAnimation] = useState(false);
   const [isStreakModalOpen, setIsStreakModalOpen] = useState(false);
+  const [isDiamondModalOpen, setIsDiamondModalOpen] = useState(false);
   const [lastStreakReward, setLastStreakReward] = useState<{ day: number, diamonds: number } | null>(null);
   const [showWelcomeToast, setShowWelcomeToast] = useState(false);
   const [welcomeMessage, setWelcomeMessage] = useState('');
@@ -886,7 +895,7 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
         userName={userProfile.name}
         message={welcomeMessage}
       />
-      <Header userProfile={userProfile} onProfileClick={toggleProfileSidebar} onStreakClick={() => setIsStreakModalOpen(true)} streakIconRef={streakIconRef} />
+      <Header userProfile={userProfile} onProfileClick={toggleProfileSidebar} onStreakClick={() => setIsStreakModalOpen(true)} onDiamondClick={() => setIsDiamondModalOpen(true)} streakIconRef={streakIconRef} />
       <main className="flex-grow max-w-7xl mx-auto p-4 md:p-8 w-full pb-24">
         <div key={activeView} className="animate-in fade-in-0 duration-500">
             {(activeView === 'day' || activeView === 'week') && (
@@ -916,6 +925,13 @@ const Dashboard: React.FC<DashboardProps> = ({ userProfile, plan, onLogout, onSt
         userProfile={userProfile}
         lastReward={lastStreakReward}
         clearLastReward={() => setLastStreakReward(null)}
+      />
+      
+      <DiamondModal
+        isOpen={isDiamondModalOpen}
+        onClose={() => setIsDiamondModalOpen(false)}
+        userProfile={userProfile}
+        setUserProfile={setUserProfile}
       />
 
       {isModifying && (

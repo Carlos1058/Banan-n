@@ -36,7 +36,7 @@ const App: React.FC = () => {
     height: 0,
     goal: '',
     fitnessLevel: '',
-    availableEquipment: '',
+    availableEquipment: [],
     physicalLimitations: 'None',
     exerciseHabits: '',
     allergies: 'Ninguna',
@@ -48,6 +48,9 @@ const App: React.FC = () => {
     diamonds: 999, // Start with 999 diamonds for testing
     bananinAccessories: [],
     completedDays: [],
+    claimedInstagramReward: false,
+    claimedFacebookReward: false,
+    claimedXReward: false,
     // Customization defaults
     purchasedThemes: ['default'],
     activeTheme: 'default',

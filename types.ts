@@ -6,7 +6,7 @@ export interface UserProfile {
   height: number;
   goal: string; // e.g., 'lose weight', 'build muscle'
   fitnessLevel: string; // e.g., 'beginner', 'intermediate', 'advanced'
-  availableEquipment: string; // e.g., 'dumbbells, yoga mat', 'full gym', 'none'
+  availableEquipment: string[]; // e.g., ['dumbbells', 'yoga mat'], ['full gym'], ['none']
   physicalLimitations: string;
   exerciseHabits: string; // e.g., '3 times a week', 'daily'
   allergies: string;
@@ -30,6 +30,9 @@ export interface UserProfile {
   diamonds: number;
   bananinAccessories: string[]; // e.g., ['hat', 'sunglasses']
   completedDays: string[]; // e.g., ['2024-07-29']
+  claimedInstagramReward?: boolean;
+  claimedFacebookReward?: boolean;
+  claimedXReward?: boolean;
   
   // UI Customization
   profilePictureUrl?: string;

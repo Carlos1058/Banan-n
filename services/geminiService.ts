@@ -67,6 +67,10 @@ const workoutPlanSchema = {
 
 // Generates a detailed prompt for the AI based on the user's profile.
 const generatePrompt = (profile: UserProfile): string => {
+  const equipmentList = Array.isArray(profile.availableEquipment) && profile.availableEquipment.length > 0
+    ? profile.availableEquipment.join(', ')
+    : 'None';
+
   let prompt = `
     Based on the following user profile, create a comprehensive and personalized 7-day workout and diet plan.
     The tone should be encouraging and fun, in the style of a friendly banana character named Bananín. The entire response must be in Spanish, except for the exercise names which must be in English.
@@ -79,7 +83,7 @@ const generatePrompt = (profile: UserProfile): string => {
     - Height: ${profile.height} cm
     - Goal: ${profile.goal}
     - Fitness Level: ${profile.fitnessLevel}
-    - Available Equipment: ${profile.availableEquipment}
+    - Available Equipment: ${equipmentList}
     - Physical Limitations: ${profile.physicalLimitations}
     - Current Exercise Habits: ${profile.exerciseHabits}
     - Food Preferences: ${profile.foodPreferences}
@@ -106,6 +110,10 @@ const generatePrompt = (profile: UserProfile): string => {
 };
 
 const generateModificationPrompt = (profile: UserProfile, currentPlan: WorkoutPlan, request: string): string => {
+  const equipmentList = Array.isArray(profile.availableEquipment) && profile.availableEquipment.length > 0
+    ? profile.availableEquipment.join(', ')
+    : 'None';
+    
   return `
     Based on the following user profile, their CURRENT 7-day workout and diet plan, and their specific modification request, create a NEW, updated 7-day plan.
     The tone should remain encouraging and fun, in the style of a friendly banana character named Bananín. The entire response must be in Spanish, except for the exercise names which must be in English.
@@ -118,7 +126,7 @@ const generateModificationPrompt = (profile: UserProfile, currentPlan: WorkoutPl
     - Height: ${profile.height} cm
     - Goal: ${profile.goal}
     - Fitness Level: ${profile.fitnessLevel}
-    - Available Equipment: ${profile.availableEquipment}
+    - Available Equipment: ${equipmentList}
     - Physical Limitations: ${profile.physicalLimitations}
     - Food Preferences: ${profile.foodPreferences}
     - Allergies: ${profile.allergies}

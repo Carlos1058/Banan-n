@@ -17,7 +17,7 @@ const questionsBase = [
   { key: 'goal', question: "¿Cuál es tu principal objetivo de fitness?", type: 'select', options: ['Perder peso', 'Ganar músculo', 'Mantenerme activo', 'Mejorar resistencia'] },
   { key: 'fitnessLevel', question: "¿Cómo describirías tu nivel de condición física actual?", type: 'select', options: ['Principiante', 'Intermedio', 'Avanzado'] },
   { key: 'exerciseHabits', question: "¿Con qué frecuencia haces ejercicio actualmente?", type: 'select', options: ['Nunca', '1-2 veces por semana', '3-5 veces por semana', 'Casi todos los días'] },
-  { key: 'availableEquipment', question: "¿Qué equipo de ejercicio tienes disponible?", type: 'select', options: ['Solo mi cuerpo', 'Mancuernas y bandas', 'Un gimnasio completo'] },
+  { key: 'availableEquipment', question: "¿Qué equipo de ejercicio tienes disponible?", type: 'multiselect', options: ['Solo mi cuerpo (Bodyweight)', 'Mancuernas', 'Bandas de resistencia', 'Barra de dominadas', 'Kettlebell', 'Gimnasio completo'] },
   { key: 'physicalLimitations', question: "Importante: ¿Tienes alguna limitación física o lesión que deba tener en cuenta?", type: 'text', placeholder: "Ej: Dolor en la rodilla, 'Ninguna'" },
   { key: 'foodPreferences', question: "Hablemos de comida. ¿Tienes alguna preferencia alimenticia?", type: 'select', options: ['Ninguna', 'Vegetariano', 'Vegano', 'Pescetariano'] },
   { key: 'allergies', question: "¿Alguna alergia alimentaria?", type: 'text', placeholder: "Ej: Maní, 'Ninguna'" },
