@@ -46,8 +46,6 @@ export interface Exercise {
   reps: string; // Can be a number or a duration like "30s"
   rest: string; // e.g., "60s"
   description: string;
-  id?: string; // ExerciseDB ID - Optional now
-  gifUrl?: string; // URL for the exercise GIF from ExerciseDB - Optional now
 }
 
 // Defines the structure for a day's workout.

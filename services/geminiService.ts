@@ -3,11 +3,6 @@ import { UserProfile, WorkoutPlan, Exercise, DailyWorkout } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
 
-// IMPORTANT: You need to get an API key from RapidAPI for ExerciseDB
-// and set it as an environment variable.
-const exerciseDbApiKey = '546e26b7dfmshd5b965dccc8c197p1bd8b3jsne46bd057423a'; 
-const exerciseDbApiUrl = 'https://exercisedb.p.rapidapi.com/exercises';
-
 // Defines the JSON schema for the workout plan to ensure structured output from the Gemini API.
 const workoutPlanSchema = {
   type: Type.OBJECT,
@@ -69,52 +64,6 @@ const workoutPlanSchema = {
   },
   required: ["workoutSchedule", "dietPlan"],
 };
-
-// Helper function to add a delay
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
-
-
-// --- New Function to fetch GIFs for a single day ---
-export const fetchGifsForDay = async (dayWorkout: DailyWorkout): Promise<DailyWorkout> => {
-    if (!exerciseDbApiKey) {
-        console.warn("ExerciseDB API key not found. Skipping GIF enrichment.");
-        return dayWorkout; // Return the day as-is
-    }
-
-    const enrichedExercises: Exercise[] = [];
-    for (const exercise of dayWorkout.exercises) {
-        // Add a 300ms delay before each API call to avoid rate limiting (429 errors)
-        await delay(300);
-        try {
-            // Using a CORS proxy to prevent "Failed to fetch" errors in browser environments.
-            const targetUrl = `${exerciseDbApiUrl}/name/${encodeURIComponent(exercise.name)}`;
-            const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-
-            const response = await fetch(proxyUrl, {
-                headers: {
-                    'X-RapidAPI-Key': exerciseDbApiKey,
-                    'X-RapidAPI-Host': 'exercisedb.p.rapidapi.com'
-                }
-            });
-            if (!response.ok) {
-                throw new Error(`ExerciseDB API request failed with status ${response.status}`);
-            }
-            const data = await response.json();
-            if (data && data.length > 0) {
-                const exerciseData = data[0];
-                enrichedExercises.push({ ...exercise, id: exerciseData.id, gifUrl: exerciseData.gifUrl });
-            } else {
-                enrichedExercises.push({ ...exercise }); // Push exercise without gif if not found
-            }
-        } catch (error) {
-            console.warn(`Could not fetch GIF for "${exercise.name}":`, error);
-            enrichedExercises.push({ ...exercise }); // Push exercise on error
-        }
-    }
-    
-    return { ...dayWorkout, exercises: enrichedExercises };
-};
-
 
 // Generates a detailed prompt for the AI based on the user's profile.
 const generatePrompt = (profile: UserProfile): string => {
@@ -211,7 +160,6 @@ export const generateWorkoutPlan = async (userProfile: UserProfile): Promise<Wor
             throw new Error("Invalid plan structure received from API.");
         }
         
-        // Return the plan without GIFs. They will be fetched on demand.
         return initialPlan;
 
     } catch (error) {
@@ -241,7 +189,6 @@ export const modifyWorkoutPlan = async (userProfile: UserProfile, currentPlan: W
             throw new Error("Invalid plan structure received from API during modification.");
         }
         
-        // Return the new plan without GIFs. They will be fetched on demand.
         return newPlan;
         
     } catch (error) {

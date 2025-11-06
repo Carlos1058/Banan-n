@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { UserProfile, WorkoutPlan } from '../types';
 import { generateWorkoutPlan } from '../services/geminiService';
 
@@ -47,6 +47,29 @@ const OnboardingAssistant: React.FC<OnboardingAssistantProps> = ({ userName, onC
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [otherText, setOtherText] = useState('');
+  const [generatingMessage, setGeneratingMessage] = useState("Analizando tus metas...");
+
+  useEffect(() => {
+    let interval: number | undefined;
+    if (isGenerating) {
+        setGeneratingMessage("Analizando tus metas..."); // Reset on start
+        const messages = [
+            "Mezclando los mejores ejercicios...",
+            "Consultando a los plátanos más sabios...",
+            "Creando un plan delicioso y efectivo...",
+            "¡Casi listo para la acción!",
+        ];
+        let i = 0;
+        interval = window.setInterval(() => {
+            setGeneratingMessage(messages[i]);
+            i = (i + 1) % messages.length;
+        }, 3500); // Slower message cycling
+    }
+    return () => {
+        if (interval) clearInterval(interval);
+    };
+  }, [isGenerating]);
+
 
   const questions = useMemo(() => {
     if (detailLevel === 'sencillo') return [questionsBase[4], questionsBase[5], questionsBase[7]]; // Goal, fitness level, equipment
@@ -113,7 +136,14 @@ const OnboardingAssistant: React.FC<OnboardingAssistantProps> = ({ userName, onC
   const renderCurrentStep = () => {
     // Loading, Error, and Review states are the same as before...
     if (isGenerating) {
-        return ( <div className="text-center"> <h2 className="text-2xl font-bold mb-4">Creando tu Plan Personalizado...</h2> <div className="flex justify-center items-center space-x-2"> <div className="w-3 h-3 bg-primary-500 rounded-full animate-pulse"></div> <div className="w-3 h-3 bg-primary-500 rounded-full animate-pulse [animation-delay:0.2s]"></div> <div className="w-3 h-3 bg-primary-500 rounded-full animate-pulse [animation-delay:0.4s]"></div> </div> <p className="mt-4 text-slate-600 dark:text-slate-300">¡Bananín está usando su magia de IA! Esto puede tardar un momento.</p> </div> )
+        return (
+            <div className="text-center">
+                <div className="text-7xl mb-4 animate-bounce">🍌</div>
+                <h2 className="text-2xl font-bold mb-4">Creando tu Plan Personalizado...</h2>
+                <div className="progress-bar-indeterminate w-full my-4"></div>
+                <p className="mt-4 text-slate-600 dark:text-slate-300 min-h-[2rem] transition-opacity duration-500">{generatingMessage}</p>
+            </div>
+        )
     }
     if (error) {
         return ( <div className="text-center"> <h2 className="text-2xl font-bold mb-4 text-red-500">¡Oh no!</h2> <p className="mb-6">{error}</p> <button onClick={handleGeneratePlan} className="bg-primary-600 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:bg-primary-700 transition-colors"> Reintentar </button> </div> )
