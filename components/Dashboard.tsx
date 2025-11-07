@@ -338,11 +338,12 @@ const BananinView: React.FC<{ userProfile: UserProfile, setUserProfile: React.Di
         { id: 'diamond_glow', name: 'Brillo Diamante', price: 2000, emoji: '✨' },
     ];
 
-    const accessories = [
-        { id: 'sombrero', name: 'Sombrero Vaquero', price: 200, emoji: '🤠' },
-        { id: 'gafas', name: 'Gafas de Sol', price: 350, emoji: '😎' },
-        { id: 'corbata', name: 'Corbata Elegante', price: 500, emoji: '👔' },
-        { id: 'corona', name: 'Corona de Rey', price: 5000, emoji: '👑' },
+    const pets = [
+        { id: 'bananin', name: 'Bananín Clásico', price: 0, emoji: '🍌' },
+        { id: 'perrito', name: 'Perrito Firulais', price: 1000, emoji: '🐶' },
+        { id: 'zanahoria', name: 'Zanahoracio', price: 750, emoji: '🥕' },
+        { id: 'gatito', name: 'Michi Mágico', price: 1200, emoji: '🐱' },
+        { id: 'brocoli', name: 'Brocolino Fuerte', price: 800, emoji: '🥦' },
     ];
 
     const cardStyles = [
@@ -351,7 +352,7 @@ const BananinView: React.FC<{ userProfile: UserProfile, setUserProfile: React.Di
         { id: 'eco', name: 'Eco Natural', price: 400, previewClass: 'bg-[#f0f5f0] border-[#4a7c59]' },
     ];
 
-    const handlePurchase = (itemType: 'theme' | 'frame' | 'accessory' | 'cardStyle', itemId: string, price: number) => {
+    const handlePurchase = (itemType: 'theme' | 'frame' | 'pet' | 'cardStyle', itemId: string, price: number) => {
         if (userProfile.diamonds < price) {
             alert("¡No tienes suficientes diamantes!");
             return;
@@ -369,8 +370,8 @@ const BananinView: React.FC<{ userProfile: UserProfile, setUserProfile: React.Di
                 newProfile.purchasedThemes = [...(newProfile.purchasedThemes || []), itemId];
             } else if (itemType === 'frame') {
                 newProfile.purchasedFrames = [...(newProfile.purchasedFrames || []), itemId];
-            } else if (itemType === 'accessory') {
-                newProfile.purchasedBananinAccessories = [...(newProfile.purchasedBananinAccessories || []), itemId];
+            } else if (itemType === 'pet') {
+                newProfile.purchasedPets = [...(newProfile.purchasedPets || []), itemId];
             } else if (itemType === 'cardStyle') {
                 newProfile.purchasedCardStyles = [...(newProfile.purchasedCardStyles || []), itemId];
             }
@@ -379,45 +380,29 @@ const BananinView: React.FC<{ userProfile: UserProfile, setUserProfile: React.Di
         });
     };
 
-    const handleActivate = (itemType: 'theme' | 'frame' | 'accessory' | 'cardStyle', itemId: string) => {
+    const handleActivate = (itemType: 'theme' | 'frame' | 'pet' | 'cardStyle', itemId: string) => {
         setUserProfile(prev => {
             if (!prev) return null;
 
             const newProfile = { ...prev };
 
-            if (itemType === 'accessory' && prev.activeBananinAccessory === itemId) {
-                newProfile.activeBananinAccessory = undefined;
-                return newProfile;
-            }
-
             if (itemType === 'theme') newProfile.activeTheme = itemId;
             else if (itemType === 'frame') newProfile.activeFrame = itemId;
-            else if (itemType === 'accessory') newProfile.activeBananinAccessory = itemId;
+            else if (itemType === 'pet') newProfile.activePet = itemId;
             else if (itemType === 'cardStyle') newProfile.activeCardStyle = itemId;
 
             return newProfile;
         });
     };
+    
+    const activePetEmoji = pets.find(p => p.id === userProfile.activePet)?.emoji || '🍌';
 
     return (
     <div className="max-w-4xl mx-auto p-4">
         <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700">
-            <h2 className="text-3xl font-bold mb-2">¡Tu Amigo Bananín!</h2>
+            <h2 className="text-3xl font-bold mb-2">¡Tu Compañero Fitness!</h2>
             <div className="relative inline-block">
-                <div className="text-8xl my-6 animate-pulse-slow">🍌</div>
-                {userProfile.activeBananinAccessory && (
-                    <div 
-                        className="absolute left-1/2 text-5xl"
-                        style={{ 
-                            transform: userProfile.activeBananinAccessory === 'corbata' 
-                                ? 'translateX(-50%) translateY(-20%)' 
-                                : 'translateX(-50%) translateY(-65%)',
-                            top: userProfile.activeBananinAccessory === 'corbata' ? '50%' : '0',
-                        }}
-                    >
-                        {accessories.find(a => a.id === userProfile.activeBananinAccessory)?.emoji}
-                    </div>
-                )}
+                <div className="text-8xl my-6 animate-pulse-slow">{activePetEmoji}</div>
             </div>
             <p className="text-slate-500 dark:text-slate-400">¡Completa tus entrenamientos para ganar diamantes y mantener tu racha!</p>
         </div>
@@ -431,28 +416,28 @@ const BananinView: React.FC<{ userProfile: UserProfile, setUserProfile: React.Di
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                  {/* Left Column */}
                 <div className="space-y-8">
-                    {/* Bananin Accessories Section */}
+                    {/* Pet Store Section */}
                     <div>
-                        <h4 className="text-lg font-semibold mb-3">Accesorios para Bananín</h4>
+                        <h4 className="text-lg font-semibold mb-3">Mascotas</h4>
                         <div className="space-y-3">
-                            {accessories.map(item => {
-                                const isOwned = userProfile.purchasedBananinAccessories?.includes(item.id);
-                                const isActive = userProfile.activeBananinAccessory === item.id;
+                            {pets.map(item => {
+                                const isOwned = userProfile.purchasedPets?.includes(item.id);
+                                const isActive = userProfile.activePet === item.id;
                                 return (
                                     <div key={item.id} className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-8 h-8 rounded-full bg-yellow-200 flex items-center justify-center text-xl">{item.emoji}</div>
+                                            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-600 flex items-center justify-center text-2xl">{item.emoji}</div>
                                             <div>
                                                 <p className="font-bold">{item.name}</p>
                                                 <p className="text-xs text-slate-500 dark:text-slate-400">{item.price > 0 ? `${item.price} 💎` : 'Gratis'}</p>
                                             </div>
                                         </div>
                                         {isActive ? (
-                                            <button onClick={() => handleActivate('accessory', item.id)} className="px-3 py-1 text-sm font-semibold bg-slate-400 text-white rounded-full hover:bg-slate-500">Quitar</button>
+                                             <span className="font-bold text-sm text-primary-500">Activo</span>
                                         ) : isOwned ? (
-                                            <button onClick={() => handleActivate('accessory', item.id)} className="px-3 py-1 text-sm font-semibold bg-primary-500 text-white rounded-full hover:bg-primary-600">Equipar</button>
+                                            <button onClick={() => handleActivate('pet', item.id)} className="px-3 py-1 text-sm font-semibold bg-primary-500 text-white rounded-full hover:bg-primary-600">Activar</button>
                                         ) : (
-                                            <button onClick={() => handlePurchase('accessory', item.id, item.price)} className="px-3 py-1 text-sm font-semibold bg-slate-200 dark:bg-slate-600 rounded-full hover:bg-slate-300 dark:hover:bg-slate-500">Comprar</button>
+                                            <button onClick={() => handlePurchase('pet', item.id, item.price)} className="px-3 py-1 text-sm font-semibold bg-slate-200 dark:bg-slate-600 rounded-full hover:bg-slate-300 dark:hover:bg-slate-500">Comprar</button>
                                         )}
                                     </div>
                                 );
@@ -620,7 +605,7 @@ const ProfileView: React.FC<{
             reader.readAsDataURL(file);
         }
     };
-// FIX START: handleProfileChange was not type-safe, causing potential type corruption in the state.
+// FIX START: The previous `handleProfileChange` was not type-safe and could corrupt the state. This version ensures that values from form inputs are correctly typed before being set.
     const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setEditableProfile(prev => {
@@ -640,7 +625,8 @@ const ProfileView: React.FC<{
                  (newProfile as any)[key] = value === '' ? 0 : Number(value);
             } else if (key === 'availableEquipment') {
                 (newProfile as any)[key] = value.split(',').map(s => s.trim());
-            } else {
+            } else if (typeof prev[key] === 'string' || prev[key] === undefined) {
+                 // Only assign to string or optional string properties to avoid type corruption.
                  (newProfile as any)[key] = value;
             }
             return newProfile;

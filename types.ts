@@ -28,8 +28,8 @@ export interface UserProfile {
   // Gamification
   streak: number;
   diamonds: number;
-  purchasedBananinAccessories: string[]; // e.g., ['hat', 'sunglasses']
-  activeBananinAccessory?: string;
+  purchasedPets: string[]; // e.g., ['bananin', 'perrito']
+  activePet: string; // e.g., 'bananin'
   completedDays: string[]; // e.g., ['2024-07-29']
   claimedInstagramReward?: boolean;
   claimedFacebookReward?: boolean;

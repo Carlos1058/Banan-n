@@ -50,8 +50,8 @@ const App: React.FC = () => {
     // Gamification defaults
     streak: 0,
     diamonds: 999, // Start with 999 diamonds for testing
-    purchasedBananinAccessories: [],
-    activeBananinAccessory: undefined,
+    purchasedPets: ['bananin'],
+    activePet: 'bananin',
     completedDays: [],
     claimedInstagramReward: false,
     claimedFacebookReward: false,
