@@ -31,7 +31,7 @@ const CalendarWeekIcon = ({ className }: { className: string }) => (
 
 const SparklesIcon = ({ className }: { className: string }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.456-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.898 20.624L16.5 21.75l-.398-1.126a3.375 3.375 0 00-2.456-2.456L12.75 18l1.126-.398a3.375 3.375 0 002.456-2.456L16.5 14.25l.398 1.126a3.375 3.375 0 002.456 2.456L20.25 18l-1.126.398a3.375 3.375 0 00-2.456 2.456z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.456-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456-2.456zM16.898 20.624L16.5 21.75l-.398-1.126a3.375 3.375 0 00-2.456-2.456L12.75 18l1.126-.398a3.375 3.375 0 002.456-2.456L16.5 14.25l.398 1.126a3.375 3.375 0 002.456 2.456L20.25 18l-1.126.398a3.375 3.375 0 00-2.456-2.456z" />
     </svg>
 );
 
@@ -338,7 +338,20 @@ const BananinView: React.FC<{ userProfile: UserProfile, setUserProfile: React.Di
         { id: 'diamond_glow', name: 'Brillo Diamante', price: 2000, emoji: '✨' },
     ];
 
-    const handlePurchase = (itemType: 'theme' | 'frame', itemId: string, price: number) => {
+    const accessories = [
+        { id: 'sombrero', name: 'Sombrero Vaquero', price: 200, emoji: '🤠' },
+        { id: 'gafas', name: 'Gafas de Sol', price: 350, emoji: '😎' },
+        { id: 'corbata', name: 'Corbata Elegante', price: 500, emoji: '👔' },
+        { id: 'corona', name: 'Corona de Rey', price: 5000, emoji: '👑' },
+    ];
+
+    const cardStyles = [
+        { id: 'default', name: 'Clásico', price: 0, previewClass: 'bg-slate-50 border-slate-200 dark:bg-slate-700/50 dark:border-slate-700' },
+        { id: 'neon', name: 'Neón Vibramente', price: 400, previewClass: 'bg-[#1a1129] border-[#7f00ff]' },
+        { id: 'eco', name: 'Eco Natural', price: 400, previewClass: 'bg-[#f0f5f0] border-[#4a7c59]' },
+    ];
+
+    const handlePurchase = (itemType: 'theme' | 'frame' | 'accessory' | 'cardStyle', itemId: string, price: number) => {
         if (userProfile.diamonds < price) {
             alert("¡No tienes suficientes diamantes!");
             return;
@@ -346,97 +359,200 @@ const BananinView: React.FC<{ userProfile: UserProfile, setUserProfile: React.Di
 
         setUserProfile(prev => {
             if (!prev) return null;
-            const key = itemType === 'theme' ? 'purchasedThemes' : 'purchasedFrames';
-            return {
+            
+            const newProfile = { 
                 ...prev,
                 diamonds: prev.diamonds - price,
-                [key]: [...(prev[key] || []), itemId],
             };
+
+            if (itemType === 'theme') {
+                newProfile.purchasedThemes = [...(newProfile.purchasedThemes || []), itemId];
+            } else if (itemType === 'frame') {
+                newProfile.purchasedFrames = [...(newProfile.purchasedFrames || []), itemId];
+            } else if (itemType === 'accessory') {
+                newProfile.purchasedBananinAccessories = [...(newProfile.purchasedBananinAccessories || []), itemId];
+            } else if (itemType === 'cardStyle') {
+                newProfile.purchasedCardStyles = [...(newProfile.purchasedCardStyles || []), itemId];
+            }
+            
+            return newProfile;
         });
     };
 
-    const handleActivate = (itemType: 'theme' | 'frame', itemId: string) => {
+    const handleActivate = (itemType: 'theme' | 'frame' | 'accessory' | 'cardStyle', itemId: string) => {
         setUserProfile(prev => {
             if (!prev) return null;
-            const key = itemType === 'theme' ? 'activeTheme' : 'activeFrame';
-            return { ...prev, [key]: itemId };
+
+            const newProfile = { ...prev };
+
+            if (itemType === 'accessory' && prev.activeBananinAccessory === itemId) {
+                newProfile.activeBananinAccessory = undefined;
+                return newProfile;
+            }
+
+            if (itemType === 'theme') newProfile.activeTheme = itemId;
+            else if (itemType === 'frame') newProfile.activeFrame = itemId;
+            else if (itemType === 'accessory') newProfile.activeBananinAccessory = itemId;
+            else if (itemType === 'cardStyle') newProfile.activeCardStyle = itemId;
+
+            return newProfile;
         });
     };
 
     return (
-    <div className="max-w-2xl mx-auto p-4">
+    <div className="max-w-4xl mx-auto p-4">
         <div className="text-center p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700">
             <h2 className="text-3xl font-bold mb-2">¡Tu Amigo Bananín!</h2>
-            <div className="text-8xl my-6 animate-pulse-slow">🍌</div>
+            <div className="relative inline-block">
+                <div className="text-8xl my-6 animate-pulse-slow">🍌</div>
+                {userProfile.activeBananinAccessory && (
+                    <div 
+                        className="absolute left-1/2 text-5xl"
+                        style={{ 
+                            transform: userProfile.activeBananinAccessory === 'corbata' 
+                                ? 'translateX(-50%) translateY(-20%)' 
+                                : 'translateX(-50%) translateY(-65%)',
+                            top: userProfile.activeBananinAccessory === 'corbata' ? '50%' : '0',
+                        }}
+                    >
+                        {accessories.find(a => a.id === userProfile.activeBananinAccessory)?.emoji}
+                    </div>
+                )}
+            </div>
             <p className="text-slate-500 dark:text-slate-400">¡Completa tus entrenamientos para ganar diamantes y mantener tu racha!</p>
         </div>
         
         <div className="mt-8 p-6 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700">
-            <h3 className="text-2xl font-bold mb-4 flex items-center gap-3">
+            <h3 className="text-2xl font-bold mb-6 flex items-center gap-3">
                 <StoreIcon className="w-8 h-8 text-primary-500" />
-                Tienda de Bananín
+                Tienda de Personalización
             </h3>
 
-            {/* App Themes Section */}
-            <div className="mb-8">
-                <h4 className="text-lg font-semibold mb-3">Paletas de Colores</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {themes.map(theme => {
-                        const isOwned = userProfile.purchasedThemes?.includes(theme.id);
-                        const isActive = userProfile.activeTheme === theme.id;
-                        return (
-                            <div key={theme.id} className="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-lg flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-full ${theme.previewClass} border-2 border-slate-300 dark:border-slate-600`}></div>
-                                    <div>
-                                        <p className="font-bold">{theme.name}</p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">{theme.price > 0 ? `${theme.price} 💎` : 'Gratis'}</p>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                 {/* Left Column */}
+                <div className="space-y-8">
+                    {/* Bananin Accessories Section */}
+                    <div>
+                        <h4 className="text-lg font-semibold mb-3">Accesorios para Bananín</h4>
+                        <div className="space-y-3">
+                            {accessories.map(item => {
+                                const isOwned = userProfile.purchasedBananinAccessories?.includes(item.id);
+                                const isActive = userProfile.activeBananinAccessory === item.id;
+                                return (
+                                    <div key={item.id} className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full bg-yellow-200 flex items-center justify-center text-xl">{item.emoji}</div>
+                                            <div>
+                                                <p className="font-bold">{item.name}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">{item.price > 0 ? `${item.price} 💎` : 'Gratis'}</p>
+                                            </div>
+                                        </div>
+                                        {isActive ? (
+                                            <button onClick={() => handleActivate('accessory', item.id)} className="px-3 py-1 text-sm font-semibold bg-slate-400 text-white rounded-full hover:bg-slate-500">Quitar</button>
+                                        ) : isOwned ? (
+                                            <button onClick={() => handleActivate('accessory', item.id)} className="px-3 py-1 text-sm font-semibold bg-primary-500 text-white rounded-full hover:bg-primary-600">Equipar</button>
+                                        ) : (
+                                            <button onClick={() => handlePurchase('accessory', item.id, item.price)} className="px-3 py-1 text-sm font-semibold bg-slate-200 dark:bg-slate-600 rounded-full hover:bg-slate-300 dark:hover:bg-slate-500">Comprar</button>
+                                        )}
                                     </div>
-                                </div>
-                                {isActive ? (
-                                    <span className="font-bold text-sm text-primary-500">Activado</span>
-                                ) : isOwned ? (
-                                    <button onClick={() => handleActivate('theme', theme.id)} className="px-3 py-1 text-sm font-semibold bg-primary-500 text-white rounded-full hover:bg-primary-600">Activar</button>
-                                ) : (
-                                    <button onClick={() => handlePurchase('theme', theme.id, theme.price)} className="px-3 py-1 text-sm font-semibold bg-slate-200 dark:bg-slate-600 rounded-full hover:bg-slate-300 dark:hover:bg-slate-500">Comprar</button>
-                                )}
-                            </div>
-                        );
-                    })}
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* Profile Frames Section */}
+                    <div>
+                        <h4 className="text-lg font-semibold mb-3">Marcos de Perfil</h4>
+                        <div className="space-y-3">
+                           {frames.map(frame => {
+                                const isOwned = userProfile.purchasedFrames?.includes(frame.id);
+                                const isActive = userProfile.activeFrame === frame.id;
+                                return (
+                                     <div key={frame.id} className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-full border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center text-xl" style={frame.previewStyle}>
+                                                {frame.emoji || ''}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold">{frame.name}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">{frame.price} 💎</p>
+                                            </div>
+                                        </div>
+                                        {isActive ? (
+                                            <span className="font-bold text-sm text-primary-500">Equipado</span>
+                                        ) : isOwned ? (
+                                            <button onClick={() => handleActivate('frame', frame.id)} className="px-3 py-1 text-sm font-semibold bg-primary-500 text-white rounded-full hover:bg-primary-600">Equipar</button>
+                                        ) : (
+                                            <button onClick={() => handlePurchase('frame', frame.id, frame.price)} className="px-3 py-1 text-sm font-semibold bg-slate-200 dark:bg-slate-600 rounded-full hover:bg-slate-300 dark:hover:bg-slate-500">Comprar</button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Column */}
+                <div className="space-y-8">
+                     {/* App Themes Section */}
+                    <div>
+                        <h4 className="text-lg font-semibold mb-3">Paletas de Colores</h4>
+                        <div className="space-y-3">
+                            {themes.map(theme => {
+                                const isOwned = userProfile.purchasedThemes?.includes(theme.id);
+                                const isActive = userProfile.activeTheme === theme.id;
+                                return (
+                                    <div key={theme.id} className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-8 h-8 rounded-full ${theme.previewClass} border-2 border-slate-300 dark:border-slate-600`}></div>
+                                            <div>
+                                                <p className="font-bold">{theme.name}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">{theme.price > 0 ? `${theme.price} 💎` : 'Gratis'}</p>
+                                            </div>
+                                        </div>
+                                        {isActive ? (
+                                            <span className="font-bold text-sm text-primary-500">Activado</span>
+                                        ) : isOwned ? (
+                                            <button onClick={() => handleActivate('theme', theme.id)} className="px-3 py-1 text-sm font-semibold bg-primary-500 text-white rounded-full hover:bg-primary-600">Activar</button>
+                                        ) : (
+                                            <button onClick={() => handlePurchase('theme', theme.id, theme.price)} className="px-3 py-1 text-sm font-semibold bg-slate-200 dark:bg-slate-600 rounded-full hover:bg-slate-300 dark:hover:bg-slate-500">Comprar</button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                     {/* Card Styles Section */}
+                    <div>
+                        <h4 className="text-lg font-semibold mb-3">Estilos de Tarjeta</h4>
+                         <div className="space-y-3">
+                            {cardStyles.map(style => {
+                                const isOwned = userProfile.purchasedCardStyles?.includes(style.id);
+                                const isActive = userProfile.activeCardStyle === style.id;
+                                return (
+                                    <div key={style.id} className="bg-slate-50 dark:bg-slate-700/50 p-3 rounded-lg flex items-center justify-between">
+                                        <div className="flex items-center gap-3">
+                                            <div className={`w-8 h-8 rounded-md ${style.previewClass} border-2`}></div>
+                                            <div>
+                                                <p className="font-bold">{style.name}</p>
+                                                <p className="text-xs text-slate-500 dark:text-slate-400">{style.price > 0 ? `${style.price} 💎` : 'Gratis'}</p>
+                                            </div>
+                                        </div>
+                                        {isActive ? (
+                                            <span className="font-bold text-sm text-primary-500">Activado</span>
+                                        ) : isOwned ? (
+                                            <button onClick={() => handleActivate('cardStyle', style.id)} className="px-3 py-1 text-sm font-semibold bg-primary-500 text-white rounded-full hover:bg-primary-600">Activar</button>
+                                        ) : (
+                                            <button onClick={() => handlePurchase('cardStyle', style.id, style.price)} className="px-3 py-1 text-sm font-semibold bg-slate-200 dark:bg-slate-600 rounded-full hover:bg-slate-300 dark:hover:bg-slate-500">Comprar</button>
+                                        )}
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    </div>
                 </div>
             </div>
-
-            {/* Profile Frames Section */}
-            <div>
-                <h4 className="text-lg font-semibold mb-3">Marcos de Perfil</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                   {frames.map(frame => {
-                        const isOwned = userProfile.purchasedFrames?.includes(frame.id);
-                        const isActive = userProfile.activeFrame === frame.id;
-                        return (
-                             <div key={frame.id} className="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-lg flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full border-2 border-slate-300 dark:border-slate-600 flex items-center justify-center text-xl" style={frame.previewStyle}>
-                                        {frame.emoji || ''}
-                                    </div>
-                                    <div>
-                                        <p className="font-bold">{frame.name}</p>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">{frame.price} 💎</p>
-                                    </div>
-                                </div>
-                                {isActive ? (
-                                    <span className="font-bold text-sm text-primary-500">Equipado</span>
-                                ) : isOwned ? (
-                                    <button onClick={() => handleActivate('frame', frame.id)} className="px-3 py-1 text-sm font-semibold bg-primary-500 text-white rounded-full hover:bg-primary-600">Equipar</button>
-                                ) : (
-                                    <button onClick={() => handlePurchase('frame', frame.id, frame.price)} className="px-3 py-1 text-sm font-semibold bg-slate-200 dark:bg-slate-600 rounded-full hover:bg-slate-300 dark:hover:bg-slate-500">Comprar</button>
-                                )}
-                            </div>
-                        );
-                    })}
-                </div>
-            </div>
-
         </div>
     </div>
     );
@@ -511,10 +627,8 @@ const ProfileView: React.FC<{
             const newProfile = { ...prev };
             const key = name as keyof UserProfile;
 
-            // This is a safe way to handle different types of inputs without losing type safety
-            if (key === 'availableEquipment') {
-                newProfile[key] = value.split(',').map(s => s.trim());
-            } else if (
+            // This approach ensures type safety by handling different property types based on the key.
+            if (
                 key === 'age' || 
                 key === 'weight' || 
                 key === 'height' || 
@@ -524,6 +638,8 @@ const ProfileView: React.FC<{
                 key === 'hipCircumference'
             ) {
                  (newProfile as any)[key] = value === '' ? 0 : Number(value);
+            } else if (key === 'availableEquipment') {
+                (newProfile as any)[key] = value.split(',').map(s => s.trim());
             } else {
                  (newProfile as any)[key] = value;
             }
@@ -1265,7 +1381,7 @@ const ExerciseCard: React.FC<ExerciseCardProps> = ({ exercise, isCompleted, onTo
     return (
         <div 
             onClick={isInteractive ? handleToggle : undefined}
-            className={`relative flex items-start gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg transition-all ${isInteractive ? 'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700' : ''} ${isAnimating ? 'animate-exercise-complete' : ''}`}
+            className={`exercise-card relative flex items-start gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg transition-all ${isInteractive ? 'cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-700' : ''} ${isAnimating ? 'animate-exercise-complete' : ''}`}
             role={isInteractive ? 'button' : undefined}
             tabIndex={isInteractive ? 0 : -1}
             aria-pressed={isInteractive ? isCompleted : undefined}

@@ -19,6 +19,10 @@ const App: React.FC = () => {
     // Apply color theme
     const theme = userProfile.activeTheme || 'default';
     document.documentElement.setAttribute('data-theme', theme);
+    
+    // Apply card style
+    const cardStyle = userProfile.activeCardStyle || 'default';
+    document.documentElement.setAttribute('data-card-style', cardStyle);
 
     // Apply dark/light mode
     const storedTheme = localStorage.getItem('theme');
@@ -27,7 +31,7 @@ const App: React.FC = () => {
     } else {
         document.documentElement.classList.remove('dark');
     }
-  }, [userProfile, userProfile?.activeTheme]);
+  }, [userProfile, userProfile?.activeTheme, userProfile?.activeCardStyle]);
 
   const createInitialProfile = (name: string, gender: string): UserProfile => ({
     name: name,
@@ -46,7 +50,8 @@ const App: React.FC = () => {
     // Gamification defaults
     streak: 0,
     diamonds: 999, // Start with 999 diamonds for testing
-    bananinAccessories: [],
+    purchasedBananinAccessories: [],
+    activeBananinAccessory: undefined,
     completedDays: [],
     claimedInstagramReward: false,
     claimedFacebookReward: false,
@@ -56,6 +61,8 @@ const App: React.FC = () => {
     activeTheme: 'default',
     purchasedFrames: [],
     activeFrame: undefined,
+    purchasedCardStyles: ['default'],
+    activeCardStyle: 'default',
   });
   
   const handleRegister = useCallback((name: string, gender: string) => {
@@ -101,6 +108,7 @@ const App: React.FC = () => {
     setWorkoutPlan(null);
     setUserName('');
     document.documentElement.removeAttribute('data-theme');
+    document.documentElement.removeAttribute('data-card-style');
     document.documentElement.classList.remove('dark');
     localStorage.removeItem('theme');
     setCurrentPage('welcome');

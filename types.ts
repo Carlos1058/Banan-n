@@ -28,7 +28,8 @@ export interface UserProfile {
   // Gamification
   streak: number;
   diamonds: number;
-  bananinAccessories: string[]; // e.g., ['hat', 'sunglasses']
+  purchasedBananinAccessories: string[]; // e.g., ['hat', 'sunglasses']
+  activeBananinAccessory?: string;
   completedDays: string[]; // e.g., ['2024-07-29']
   claimedInstagramReward?: boolean;
   claimedFacebookReward?: boolean;
@@ -40,6 +41,8 @@ export interface UserProfile {
   activeTheme?: string; // e.g., 'verde'
   purchasedFrames?: string[]; // e.g., ['gold', 'squats']
   activeFrame?: string; // e.g., 'gold'
+  purchasedCardStyles?: string[]; // e.g., ['default', 'neon']
+  activeCardStyle?: string; // e.g., 'default'
 }
 
 // Defines the structure for a single exercise.

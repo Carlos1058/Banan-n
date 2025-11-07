@@ -188,6 +188,54 @@
       .animate-toast-in {
         animation: toast-in 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
       }
+
+      /* --- Card Styles --- */
+      .exercise-card {
+        transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      /* Neon Card Style */
+      [data-card-style="neon"] .exercise-card {
+        background-color: #1a1129 !important;
+        border: 1px solid #7f00ff !important;
+        box-shadow: 0 0 8px #7f00ff33, 0 0 3px #bf00ff80 inset;
+      }
+      .dark [data-card-style="neon"] .exercise-card h4, [data-card-style="neon"] .exercise-card h4 {
+        color: #f0f !important; text-shadow: 0 0 5px #f0f;
+      }
+      .dark [data-card-style="neon"] .exercise-card p, [data-card-style="neon"] .exercise-card p {
+        color: #c0c0ff !important;
+      }
+      .dark [data-card-style="neon"] .exercise-card .font-mono, [data-card-style="neon"] .exercise-card .font-mono {
+        color: #0ff !important;
+      }
+      .dark [data-card-style="neon"] .exercise-card:hover {
+        background-color: #24163d !important;
+      }
+
+      /* Eco Card Style */
+      [data-card-style="eco"] .exercise-card {
+        background-color: #f0f5f0 !important;
+        border: 1px solid #4a7c59 !important;
+      }
+      .dark [data-card-style="eco"] .exercise-card h4, [data-card-style="eco"] .exercise-card h4 {
+        color: #2a5a38 !important;
+      }
+      .dark [data-card-style="eco"] .exercise-card p, [data-card-style="eco"] .exercise-card p {
+        color: #556b5a !important;
+      }
+      .dark [data-card-style="eco"] .exercise-card .font-mono, [data-card-style="eco"] .exercise-card .font-mono {
+        color: #4a7c59 !important;
+      }
+      .dark [data-card-style="eco"] .exercise-card {
+        background-color: #1c2b22 !important;
+        border: 1px solid #5a9c6f !important;
+      }
+      .dark [data-card-style="eco"] .exercise-card h4 { color: #a3d9b1 !important; }
+      .dark [data-card-style="eco"] .exercise-card p { color: #a0b0a5 !important; }
+      .dark [data-card-style="eco"] .exercise-card .font-mono { color: #8bc39d !important; }
+      [data-card-style="eco"] .exercise-card:hover { background-color: #e6f0e6 !important; }
+      .dark [data-card-style="eco"] .exercise-card:hover { background-color: #24382c !important; }
     </style>
   </head>
   <body>
